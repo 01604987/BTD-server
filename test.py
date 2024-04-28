@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import time
 import threading
-from preprocessing.storer import accel_raw, lock
+from processing.storer import accel_raw, lock
 
 def update(frame):
     with lock:

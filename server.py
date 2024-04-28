@@ -1,8 +1,8 @@
 import socket
 import threading
 import time
-from preprocessing import preprocess
-from preprocessing import storer
+from processing import network_package as np, storer
+from processing.data_collection import DC
 
 
 SIZE = 64 # how many symbols (bytes) to read
@@ -19,16 +19,15 @@ server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server.bind(ADDR)
 
 
-
-def handle_client_int(conn, addr):
+def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
     print(f"[NEW CONNECTION] {addr} connected.")
 
     termination = 'end'.encode()
     st = time.time()
     a= 0
     connected = True
-    while connected:
-        data = conn.recv(12)  # receive up to 1024 bytes of data
+    while connected and not exit.is_set():
+        data = conn.recv(12)  #
         if not data:
             print("no message..")  # connection closed by client
             break
@@ -37,12 +36,13 @@ def handle_client_int(conn, addr):
             # no need to take the last data captured before end because will always receive 12 bytes as chunk.
             #msg= msg + data.decode('utf-8')[:-3]
             break
+        # store received data in a queue for processing by another thread
         else:
-            raw_data = preprocess.ntohs_array(data)
-            # append raw data to raw_signal csv.
-            storer.store(raw_data, raw=True)
+            raw_data = np.ntohs_array(data)
+            # push to queue for processing by another thread.
+            dc.q.put(raw_data)
             a += 1
-            print("msg count: {}".format(a))
+            #print("msg count: {}".format(a))
 
         # debug 
         # print('chunk:', htons)
@@ -61,11 +61,22 @@ def handle_client_int(conn, addr):
     conn.close()
 
 
-def start():
+def start(exit:threading.Event, dc:DC):
     server.listen()
     print(f"[LISTENING] Server is listening on {SERVER}")
 
     conn, addr = server.accept()
-    thread = threading.Thread(target=handle_client_int, args=(conn, addr))
+    thread = threading.Thread(target=handle_client_int, args=(conn, addr, exit, dc))
     thread.start()
-    print(f"[ACTIVE CONNECTIONS] {threading.activeCount() - 1}")
+
+    while dc.q.empty():
+        if exit.is_set():
+            return 0
+        time.sleep(0.5)
+    
+    print("Starting Storer")
+    storer_t = threading.Thread(target=storer.start, args=(exit, dc))
+    storer_t.start()
+
+
+    print(f"[ACTIVE THREADS] {threading.activeCount()}")

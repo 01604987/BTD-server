@@ -3,19 +3,21 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import time
 import threading
-from preprocessing.storer import accel_raw, lock
+from processing.data_collection import DC
+
+dc:DC = None
+
 
 def update(frame):
-    with lock:
+    with dc.accel_list_lock:
         
-        data_x = [data[0] for data in accel_raw]
-        data_y = [data[1] for data in accel_raw]
-        data_z = [data[2] for data in accel_raw]
+        data_x = [data[0] for data in dc.accel_raw]
+        data_y = [data[1] for data in dc.accel_raw]
+        data_z = [data[2] for data in dc.accel_raw]
 
-    
     plt.cla()
 
-    plt.ylim(-2, 2)
+    plt.ylim(-3, 3)
 
     plt.plot(data_x, label='x-axis')
     plt.plot(data_y, label='y-axis')
@@ -25,17 +27,9 @@ def update(frame):
     plt.tight_layout()
 
 
-
-def test (exit_flag: threading.Event):
-    counter = 0
-    while not exit_flag.is_set():
-        time.sleep(1)
-        counter += 1
-        print("sleeping {}".format(counter))
-    print("Exiting plotter")
-
-def start(exit: threading.Event):
-    
+def start(exit:threading.Event, data_collection:DC):
+    global dc
+    dc = data_collection
     freq = 100
     interval = (1/freq) * 1000
     frame = 1000
@@ -43,8 +37,32 @@ def start(exit: threading.Event):
     fig, ax = plt.subplots()
 
     print('Starting plotter')
-    ani = FuncAnimation(fig, update, frames = frame, interval=interval)
-    plt.show()
+    ani = FuncAnimation(fig, update, frames = frame, interval=5)
+    try:
+        plt.show()
+    except KeyboardInterrupt:
+        print("Bye")
+        exit.set()
+        close()
+
+    
+    # try:
+    #     while not exit.is_set():
+    #         time.sleep(1)
+    # except KeyboardInterrupt:
+    #     print("Keyboard interrupt received. Exiting...")
+    # finally:
+    #     exit.set()  # Set the exit event flag to terminate other threads
+    #     close()     # Close the plot
+    
+    # while True:
+    #     try:
+    #         time.sleep(1)
+    #     except KeyboardInterrupt:
+    #         print("Bye")
+    #         exit.set()
+    #         close()
+    #         break
 
 def close():
     plt.close()
