@@ -15,8 +15,10 @@ DISCONNECT_MESSAGE = "!DISCONNECT"
 
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.settimeout(10)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server.bind(ADDR)
+
 
 
 # TODO extend for accepting different kind of data / protocol
@@ -66,7 +68,22 @@ def start(exit:threading.Event, dc:DC):
     server.listen()
     print(f"[LISTENING] Server is listening on {SERVER}")
 
-    conn, addr = server.accept()
+
+    conn = None
+
+    # server.accept is blocking, preventing graceful shutdown
+    # use exit.is_set()
+    while not conn:
+        try:
+            conn, addr = server.accept()
+        except socket.timeout:
+            if exit.is_set():
+                print("Shutting down Server")
+                return 0
+            else:
+                print("Accept connections Timeout. Retry in {} seconds".format(server.gettimeout()))
+    
+
     thread = threading.Thread(target=handle_client_int, args=(conn, addr, exit, dc))
     thread.start()
 

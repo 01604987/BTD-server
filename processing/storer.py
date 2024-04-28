@@ -2,6 +2,13 @@ import csv
 import threading
 import queue
 from processing.data_collection import DC
+import os
+
+data_folder = "./data"
+
+if not os.path.exists(data_folder):
+    os.makedirs(data_folder)
+    print("Initialized data directory")
 
 dc:DC = None
 
