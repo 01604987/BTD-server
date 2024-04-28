@@ -7,7 +7,6 @@ from processing.data_collection import DC
 
 dc:DC = None
 
-
 def update(frame):
     with dc.accel_list_lock:
         
@@ -15,10 +14,12 @@ def update(frame):
         data_y = [data[1] for data in dc.accel_raw]
         data_z = [data[2] for data in dc.accel_raw]
 
+    # clean plots
     plt.cla()
 
     plt.ylim(-3, 3)
 
+    # plot all 3 axis values
     plt.plot(data_x, label='x-axis')
     plt.plot(data_y, label='y-axis')
     plt.plot(data_z, label='z-axis')
@@ -37,32 +38,16 @@ def start(exit:threading.Event, data_collection:DC):
     fig, ax = plt.subplots()
 
     print('Starting plotter')
-    ani = FuncAnimation(fig, update, frames = frame, interval=5)
+    # frame probably currently not relevant. Plot updates based on interval
+    ani = FuncAnimation(fig, update, frames = frame, interval=interval)
     try:
+        # blocking function
         plt.show()
     except KeyboardInterrupt:
+        # terminate plotter thread
         print("Bye")
         exit.set()
         close()
-
-    
-    # try:
-    #     while not exit.is_set():
-    #         time.sleep(1)
-    # except KeyboardInterrupt:
-    #     print("Keyboard interrupt received. Exiting...")
-    # finally:
-    #     exit.set()  # Set the exit event flag to terminate other threads
-    #     close()     # Close the plot
-    
-    # while True:
-    #     try:
-    #         time.sleep(1)
-    #     except KeyboardInterrupt:
-    #         print("Bye")
-    #         exit.set()
-    #         close()
-    #         break
 
 def close():
     plt.close()

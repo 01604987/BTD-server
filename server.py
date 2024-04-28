@@ -19,6 +19,7 @@ server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server.bind(ADDR)
 
 
+# TODO extend for accepting different kind of data / protocol
 def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
     print(f"[NEW CONNECTION] {addr} connected.")
 
@@ -27,7 +28,8 @@ def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
     a= 0
     connected = True
     while connected and not exit.is_set():
-        data = conn.recv(12)  #
+        # accel data = 3 float values. 4 byte each = 12 byte max for single message.
+        data = conn.recv(12)  
         if not data:
             print("no message..")  # connection closed by client
             break
@@ -36,7 +38,6 @@ def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
             # no need to take the last data captured before end because will always receive 12 bytes as chunk.
             #msg= msg + data.decode('utf-8')[:-3]
             break
-        # store received data in a queue for processing by another thread
         else:
             raw_data = np.ntohs_array(data)
             # push to queue for processing by another thread.

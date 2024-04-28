@@ -9,7 +9,7 @@ raw_signal = "./data/raw_signal.csv"
 processed_signal = "./data/processed_signal.csv"
 
 
-
+# push data into in memory list and persist to csv
 def store(data, raw = False):
 
     if raw:
@@ -23,7 +23,7 @@ def store(data, raw = False):
 
     to_csv(data, raw)
 
-
+# persist to csv for alternative processing 
 def to_csv(data, raw = False):
 
     path = processed_signal
@@ -35,7 +35,7 @@ def to_csv(data, raw = False):
         writer = csv.writer(file)
         writer.writerow(data)
 
-#deprecated
+#deprecated do not use
 def flush():
     for el in dc.accel_raw:
         to_csv(el, False)
@@ -43,6 +43,8 @@ def flush():
     for el in dc.accel_processed:
         to_csv(el, True)
 
+
+# fetch queue elements for processing and push to in memory/csv store
 def start(exit:threading.Event, data_collection:DC):
     global dc
     dc = data_collection
@@ -50,10 +52,13 @@ def start(exit:threading.Event, data_collection:DC):
         try:
             raw = dc.q.get(block=5)
         except queue.Empty:
-            store(raw, True)
-            store(raw, False)
+            print("queue empty, terminating thread")
+            store(raw, raw = True)
+            store(proccessed, raw = False)
             break
-        
+
+        proccessed = raw
         store(raw, True)
-        store(raw, False)
+        # todo preprocess raw signal
+        store(proccessed, False)
     

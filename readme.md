@@ -15,3 +15,8 @@ This repository contains server code for receiving, preprocessing and plotting r
     - Mac: ``?``
 - run ``pip install -r requirements.txt``
 - start ``main.py``
+
+# Threads
+- Server (handles clinet connections)
+- Data storer (starts if queue not empty)
+- Plotter (main)
