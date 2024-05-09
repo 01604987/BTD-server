@@ -57,7 +57,7 @@ def start(exit:threading.Event, data_collection:DC):
     dc = data_collection
     while not exit.is_set():
         try:
-            raw = dc.q.get(block=5)
+            raw = dc.q.get(block= True, timeout=5)
         except queue.Empty:
             print("queue empty, terminating thread")
             store(raw, raw = True)
