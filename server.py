@@ -20,6 +20,22 @@ server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server.bind(ADDR)
 
 
+udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+udp_socket.bind((SERVER, 51))
+
+def listen_udp_sock(exit:threading.Event, dc:DC):
+    print(f"Listen to udp sock under {SERVER}:51")
+    connected = True
+    while connected and not exit.is_set():
+        data, addr = udp_socket.recvfrom(12)
+        if not data:
+            print("no message..")  # connection closed by client
+            break
+        else:
+            raw_data = np.ntohs_array(data)
+            # push to queue for processing by another thread.
+            dc.q.put(raw_data)
+
 
 # TODO extend for accepting different kind of data / protocol
 def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
@@ -84,9 +100,13 @@ def start(exit:threading.Event, dc:DC):
                 print("Accept connections Timeout. Retry in {} seconds".format(server.gettimeout()))
     
 
-    thread = threading.Thread(target=handle_client_int, args=(conn, addr, exit, dc))
-    thread.start()
+    tcp = threading.Thread(target=handle_client_int, args=(conn, addr, exit, dc))
+    tcp.start()
 
+    udp = threading.Thread(target=listen_udp_sock, args=(exit, dc))
+    udp.start()
+
+    # TODO need to remove this in order to start storer with empty queue
     while dc.q.empty():
         if exit.is_set():
             return 0
