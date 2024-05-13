@@ -17,6 +17,12 @@ This repository contains server code for receiving, preprocessing and plotting r
 - start ``main.py``
 
 # Threads
-- Server (handles clinet connections)
+- Server (handles clinet connections) 2x
+    - TCP read/write
+    - UDP read
 - Data storer (starts if queue not empty)
 - Plotter (main)
+
+# TODO
+- terminate program and close threads for udp
+- apply filters to raw accel values
