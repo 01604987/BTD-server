@@ -2,7 +2,10 @@ import math
 from processing.data_collection import AccelGyroData
 
 # https://www.geekmomprojects.com/wp-content/uploads/2022/03/filter.pdf
-# This complimentary filter can quickly and semi robustly estimate orientation with accelerometer and gyroscope data.
+# http://www.geekmomprojects.com/gyroscopes-and-accelerometers-on-a-chip/
+
+# This complimentary filter can quickly and semi robustly estimate orientation for pitch and roll with accelerometer and gyroscope data.
+# This filter is not suitable for accurately estimating the z axis because gravitational force does not influence yaw.
 # The goal is to use the orientation data to subtract gravitational influence within the accelerometer signal for linear accelerometer data.
 
 #! acceleration and gyroscope calibration not considered.

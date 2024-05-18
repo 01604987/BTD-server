@@ -1,7 +1,7 @@
 # Server
 This repository contains server code for receiving, preprocessing and plotting raw accelerometer data from the m5stick c plus.
 
-# How to
+# How to install
 - Make sure python ``3.x`` is installed. Only tested with python ``3.11``
 - ``git clone https://github.com/01604987/BTD-server.git`` this repository
 - Navigate into the cloned folder
@@ -15,6 +15,25 @@ This repository contains server code for receiving, preprocessing and plotting r
     - Mac: ``?``
 - run ``pip install -r requirements.txt``
 - start ``main.py``
+
+
+# How to use
+- Configure ESP-IDF menu config with correct ip and ports
+    - ip adress: check on host
+        - Windows: ipconfig
+        - Mac: ifconfig | grep "inet " | grep -v 127.0.0.1
+    - port: 5000
+
+- Configure ESP-IDF network/wifi connection
+
+- Run server with main.py
+- 3 plots should appear
+    - upper left: raw accelerometer scaled by 0.00048808125 (see BTD-Framework)
+    - upper right: raw gyroscope scaled by 0.007633587786 (equal to degrees/sec)
+    - lower left: orientation in x,y axis (tilt) 
+
+
+
 
 # Threads
 - Server (handles clinet connections) 2x
