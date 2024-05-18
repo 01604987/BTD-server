@@ -2,6 +2,7 @@ import csv
 import threading
 import queue
 from processing.data_collection import DC
+from processing import complementary_filter
 import os
 
 data_folder = "./data"
@@ -14,12 +15,19 @@ dc:DC = None
 
 raw_signal = "./data/raw_signal.csv"
 processed_signal = "./data/processed_signal.csv"
-
+orientation_data = "./data/processed_orientation.csv"
 
 def store_imu(data):
     with dc.accel_list_lock:
         dc.imu_raw.append(data)
         dc.imu_raw.pop(0)
+
+def store_orientation(data):
+    with dc.orientation_lock:
+        dc.orientation.append(data)
+        dc.orientation.pop(0)
+    
+    to_csv(data, orientation = True)
 
 # push data into in memory list and persist to csv
 def store(data, raw = False):
@@ -33,15 +41,23 @@ def store(data, raw = False):
             dc.accel_processed.append(data)
             dc.accel_processed.pop(0)
 
-    to_csv(data, raw)
+    to_csv(data, raw = raw)
 
 # persist to csv for alternative processing 
-def to_csv(data, raw = False):
+def to_csv(data, **kwargs):
 
-    path = processed_signal
+    path = raw_signal
 
-    if raw:
+
+    if kwargs.get('raw'):
         path = raw_signal
+    
+    if kwargs.get('filtered'):
+        path = processed_signal
+    
+    if kwargs.get('orientation'):
+        path = orientation_data
+
 
     with open(path, mode ='a', newline='') as file:
         writer = csv.writer(file)
@@ -71,10 +87,9 @@ def start(exit:threading.Event, data_collection:DC):
 
         #proccessed = raw
         store_imu(raw)
-        
+        orientation = complementary_filter.estimate_orientation([raw[0], raw[1], raw[2]], [raw[3], raw[4], raw[5]])
+        store_orientation(orientation)
         #store(raw, True)
-
-
 
         # todo preprocess raw signal
         #store(proccessed, False)
