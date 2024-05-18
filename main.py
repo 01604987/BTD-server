@@ -12,9 +12,9 @@ def main():
     server_thread = threading.Thread(target=server.start, args=(exit_flag, dc))
     server_thread.start()
     
+    # main loop starts here
     plotter.start(exit_flag, dc)
-    #plot_thread = threading.Thread(target=plotter.start, args=(exit_flag,))
-    #plot_thread.start()
+
 
 if __name__ == "__main__":
     main()

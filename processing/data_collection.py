@@ -5,8 +5,12 @@ class DC:
 
     def __init__(self, frames) -> None:
         # queue for pushing live data from sockets for processing by the processing thread (storer)
-        self.q = queue.Queue()
-        # built in list not thread safe. Add lock to prevent corruption
+        self.data_q = queue.Queue()
+
+        # queue for pushing m5 stick commands for executing in controls
+        self.msg_q = queue.Queue()
+
+        # built in list is not thread safe. Add lock to prevent corruption
         self.accel_list_lock = threading.Lock()
 
         # the window size for plotter to plot values in x

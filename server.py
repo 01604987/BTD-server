@@ -6,10 +6,10 @@ from processing.data_collection import DC
 
 
 SIZE = 64 # how many symbols (bytes) to read
-PORT = 50 # port number to listen on
+PORT = 5000 # port number to listen on
 # need to adjust this function to get correct host address for hosts that have multiple adapters
-SERVER = socket.gethostbyname_ex(socket.gethostname())[2][2] # this gets the current IP addr.
-#SERVER = '0.0.0.0'
+#SERVER = socket.gethostbyname_ex(socket.gethostname())[2][2] # this gets the current IP addr.
+SERVER = '0.0.0.0'
 ADDR = (SERVER, PORT)
 DISCONNECT_MESSAGE = "!DISCONNECT"
 
@@ -21,12 +21,13 @@ server.bind(ADDR)
 
 
 udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-udp_socket.bind((SERVER, 51))
+udp_socket.bind((SERVER, PORT))
 
 def listen_udp_sock(exit:threading.Event, dc:DC):
-    print(f"Listen to udp sock under {SERVER}:51")
+    print(f"Listen to udp sock under {SERVER}:{PORT}")
     connected = True
     while connected and not exit.is_set():
+        # TODO recv 24 bytes to include xyz gyro data
         data, addr = udp_socket.recvfrom(12)
         if not data:
             print("no message..")  # connection closed by client
@@ -34,10 +35,10 @@ def listen_udp_sock(exit:threading.Event, dc:DC):
         else:
             raw_data = np.ntohs_array(data)
             # push to queue for processing by another thread.
-            dc.q.put(raw_data)
+            dc.data_q.put(raw_data)
 
 
-# TODO extend for accepting different kind of data / protocol
+# TODO rewrite TCP to accept string or numeric commands
 def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
     print(f"[NEW CONNECTION] {addr} connected.")
 
@@ -59,12 +60,9 @@ def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
         else:
             raw_data = np.ntohs_array(data)
             # push to queue for processing by another thread.
-            dc.q.put(raw_data)
+            dc.msg_q.put(raw_data)
             a += 1
-            #print("msg count: {}".format(a))
 
-        # debug 
-        # print('chunk:', htons)
 
     # get the end time          
     et = time.time() 
@@ -107,7 +105,7 @@ def start(exit:threading.Event, dc:DC):
     udp.start()
 
     # TODO need to remove this in order to start storer with empty queue
-    while dc.q.empty():
+    while dc.data_q.empty():
         if exit.is_set():
             return 0
         time.sleep(0.5)
