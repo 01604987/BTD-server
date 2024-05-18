@@ -16,6 +16,11 @@ raw_signal = "./data/raw_signal.csv"
 processed_signal = "./data/processed_signal.csv"
 
 
+def store_imu(data):
+    with dc.accel_list_lock:
+        dc.imu_raw.append(data)
+        dc.imu_raw.pop(0)
+
 # push data into in memory list and persist to csv
 def store(data, raw = False):
 
@@ -60,12 +65,17 @@ def start(exit:threading.Event, data_collection:DC):
             raw = dc.data_q.get(block= True, timeout=5)
         except queue.Empty:
             print("queue empty, terminating thread")
-            store(raw, raw = True)
-            store(proccessed, raw = False)
+            #store(raw, raw = True)
+            #store(proccessed, raw = False)
             break
 
-        proccessed = raw
-        store(raw, True)
+        #proccessed = raw
+        store_imu(raw)
+        
+        #store(raw, True)
+
+
+
         # todo preprocess raw signal
-        store(proccessed, False)
+        #store(proccessed, False)
     

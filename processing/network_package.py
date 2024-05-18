@@ -6,3 +6,10 @@ def ntohs_array(data):
     float_values = struct.unpack('fff', data)
     return float_values
 
+def ntohs_array_imu(data):
+    int_values = struct.unpack('HHHHHH', data)
+    return int_values
+
+def ntohs_array_imu_float(data):
+    float_values = struct.unpack('ffffff', data)
+    return float_values

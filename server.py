@@ -15,27 +15,40 @@ DISCONNECT_MESSAGE = "!DISCONNECT"
 
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.settimeout(10)
+server.settimeout(3)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server.bind(ADDR)
 
 
 udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+udp_socket.settimeout(3)
 udp_socket.bind((SERVER, PORT))
 
 def listen_udp_sock(exit:threading.Event, dc:DC):
     print(f"Listen to udp sock under {SERVER}:{PORT}")
     connected = True
     while connected and not exit.is_set():
-        # TODO recv 24 bytes to include xyz gyro data
-        data, addr = udp_socket.recvfrom(12)
-        if not data:
-            print("no message..")  # connection closed by client
-            break
-        else:
-            raw_data = np.ntohs_array(data)
-            # push to queue for processing by another thread.
-            dc.data_q.put(raw_data)
+        try:
+            # TODO recv 24 bytes to include xyz gyro data
+            data, addr = udp_socket.recvfrom(24)
+            if not data:
+                print("no message..")  # connection closed by client
+                break
+            else:
+                #raw_data = np.ntohs_array(data)
+                raw_data = np.ntohs_array_imu_float(data)
+                # push to queue for processing by another thread.
+                dc.data_q.put(raw_data)
+        except socket.timeout:
+            print("Udp timeout")
+        except ConnectionResetError:
+            print("Connection reset by peer.")
+        except ConnectionAbortedError:
+            print("Connection aborted.")
+        except OSError as e:
+            print(f"Socket error occurred: {e}")
+
+
 
 
 # TODO rewrite TCP to accept string or numeric commands
@@ -47,21 +60,26 @@ def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
     a= 0
     connected = True
     while connected and not exit.is_set():
-        # accel data = 3 float values. 4 byte each = 12 byte max for single message.
-        data = conn.recv(12)  
-        if not data:
-            print("no message..")  # connection closed by client
-            break
-        elif termination in data:
-            print("end of transmission..")
-            # no need to take the last data captured before end because will always receive 12 bytes as chunk.
-            #msg= msg + data.decode('utf-8')[:-3]
-            break
-        else:
-            raw_data = np.ntohs_array(data)
-            # push to queue for processing by another thread.
-            dc.msg_q.put(raw_data)
-            a += 1
+        try:
+            # accel data = 3 float values. 4 byte each = 12 byte max for single message.
+            data = conn.recv(12)  
+            if not data:
+                print("no message..")  # connection closed by client
+                break
+            elif termination in data:
+                print("end of transmission..")
+                connected = False
+                # no need to take the last data captured before end because will always receive 12 bytes as chunk.
+                #msg= msg + data.decode('utf-8')[:-3]
+                break
+            else:
+                raw_data = np.ntohs_array(data)
+                # push to queue for processing by another thread.
+                dc.msg_q.put(raw_data)
+                a += 1
+        except ConnectionAbortedError:
+            print("Connection aborted")
+            return
 
 
     # get the end time          
@@ -76,7 +94,15 @@ def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
 
     conn.send("Bye!".encode('utf-8'))
     conn.close()
+    udp_socket.close()
 
+
+def closer(exit:threading.Event, conn:socket):
+    while (not exit.is_set()):
+        time.sleep(1)
+    
+    conn.close()
+    udp_socket.close()
 
 def start(exit:threading.Event, dc:DC):
     server.listen()
@@ -114,5 +140,10 @@ def start(exit:threading.Event, dc:DC):
     storer_t = threading.Thread(target=storer.start, args=(exit, dc))
     storer_t.start()
 
+    terminator = threading.Thread(target=closer, args=(exit, conn))
+    terminator.start()
 
     print(f"[ACTIVE THREADS] {threading.activeCount()}")
+
+
+

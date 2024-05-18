@@ -18,3 +18,7 @@ class DC:
         # init raw and processed acceleration value lists with 0 padding and len = in_memory_frame
         self.accel_raw = [[0, 0, 0] for _ in range(self.in_memory_frames)]
         self.accel_processed = [[0, 0, 0] for _ in range(self.in_memory_frames)]
+
+
+        # init list for raw imu readings
+        self.imu_raw = [[0, 0, 0, 0, 0, 0] for _ in range(self.in_memory_frames)]

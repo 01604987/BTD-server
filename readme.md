@@ -26,3 +26,10 @@ This repository contains server code for receiving, preprocessing and plotting r
 # TODO
 - terminate program and close threads for udp
 - apply filters to raw accel values
+
+
+
+# Notes
+
+- accel offset: {}
+- gyro offset: {5, 25, -43}
