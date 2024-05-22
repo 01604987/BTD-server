@@ -2,7 +2,7 @@ import csv
 import threading
 import queue
 from processing.data_collection import DC
-from processing import complementary_filter
+from processing import complementary_filter, linear_acceleration
 import os
 
 data_folder = "./data"
@@ -28,6 +28,11 @@ def store_orientation(data):
         dc.orientation.pop(0)
     
     to_csv(data, orientation = True)
+
+def store_linear_accel(data):
+    with dc.linear_accel_lock:
+        dc.linear_accel.append(data)
+        dc.linear_accel.pop(0)
 
 # push data into in memory list and persist to csv
 def store(data, raw = False):
@@ -89,6 +94,8 @@ def start(exit:threading.Event, data_collection:DC):
         store_imu(raw)
         orientation = complementary_filter.estimate_orientation([raw[0], raw[1], raw[2]], [raw[3], raw[4], raw[5]])
         store_orientation(orientation)
+        linear_accel = linear_acceleration.free_linear_acceleration([raw[0], raw[1], raw[2]], orientation)
+        store_linear_accel(linear_accel)
         #store(raw, True)
 
         # todo preprocess raw signal

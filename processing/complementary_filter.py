@@ -19,8 +19,14 @@ DT = 0.01
 RADIANS_TO_DEG = 180/3.14159
 
 def calculate_accel_angles(current_accel_xyz:list):
-    accel_angle_x = math.atan(current_accel_xyz[1] / math.sqrt(math.pow(current_accel_xyz[0], 2) + math.pow(current_accel_xyz[2], 2))) * RADIANS_TO_DEG
-    accel_angle_y = math.atan(-1 * current_accel_xyz[0] / math.sqrt(math.pow(current_accel_xyz[1], 2) + math.pow(current_accel_xyz[2], 2))) * RADIANS_TO_DEG
+    try:
+        accel_angle_x = math.atan(current_accel_xyz[1] / math.sqrt(math.pow(current_accel_xyz[0], 2) + math.pow(current_accel_xyz[2], 2))) * RADIANS_TO_DEG
+    except ZeroDivisionError:
+        accel_angle_x = 0
+    try:
+        accel_angle_y = math.atan(-1 * current_accel_xyz[0] / math.sqrt(math.pow(current_accel_xyz[1], 2) + math.pow(current_accel_xyz[2], 2))) * RADIANS_TO_DEG
+    except ZeroDivisionError:
+        accel_angle_y = 0
     accel_angle_z = 0
 
     return [accel_angle_x, accel_angle_y, accel_angle_z]

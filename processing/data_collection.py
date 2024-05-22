@@ -27,6 +27,10 @@ class DC:
         self.orientation = [[0, 0, 0] for _ in range(self.in_memory_frames)]
 
 
+        self.linear_accel_lock = threading.Lock()
+        self.linear_accel = [[0, 0, 0] for _ in range(self.in_memory_frames)]
+
+
 
 class AccelGyroData:
 
