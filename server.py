@@ -47,9 +47,25 @@ def listen_udp_sock(exit:threading.Event, dc:DC):
             print("Connection aborted.")
         except OSError as e:
             print(f"Socket error occurred: {e}")
+            break
 
 
-
+def calc_freq(st:time.time, imu_raw):
+    # get the end time          
+    et = time.time() 
+    print('Done')
+    # get the execution time
+    elapsed = et - st
+    count = 0
+    for zero in imu_raw:
+        if zero == [0,0,0,0,0,0]:
+            count += 1
+        else:
+            break
+    perMessage = elapsed/ (len(imu_raw) - count)
+    print ((len(imu_raw) - count), 'messages in approx.',elapsed,'s')
+    freq = 1/perMessage
+    print(freq)
 
 # TODO rewrite TCP to accept string or numeric commands
 def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
@@ -80,7 +96,14 @@ def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
         except ConnectionAbortedError:
             print("Connection aborted")
             return
+    
+    
+    conn.send("Bye!".encode('utf-8'))
+    conn.close()
+    udp_socket.close()
 
+    calc_freq(st, dc.imu_raw)
+    return
 
     # get the end time          
     et = time.time() 
@@ -92,9 +115,6 @@ def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
     freq = 1/perMessage
     print(freq)
 
-    conn.send("Bye!".encode('utf-8'))
-    conn.close()
-    udp_socket.close()
 
 
 def closer(exit:threading.Event, conn:socket):

@@ -20,6 +20,7 @@ def free_linear_acceleration(filtered_accel, filtered_orientation):
 
     # Gravitational acceleration vector in the global coordinate system
     g_global = np.array([0, 0, -1])
+    #g_global = np.array([0, 0, 1])
 
     # Calculate the gravitational component in the device's coordinate system
     g_device = np.dot(R, g_global)
