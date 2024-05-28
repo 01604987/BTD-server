@@ -3,6 +3,7 @@ import threading
 import time
 from processing import network_package as np, storer
 from processing.data_collection import DC
+from conrols.actions import *
 
 
 SIZE = 64 # how many symbols (bytes) to read
@@ -77,8 +78,10 @@ def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
                 break
             elif left_swipe in data:
                 print("Left Swipe Command recieved!")
+                previous_slide()
             elif right_swipe in data:
                 print("Right Swipe Command recieved!")
+                next_slide()
             else:
                 raw_data = np.ntohs_array(data)
                 # push to queue for processing by another thread.
