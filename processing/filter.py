@@ -13,6 +13,7 @@ x_coeff = {
 }
 
 def applyFilter_x(prev_out, curr_in, prev_in, hpf = False) :
+    
     if hpf: 
         output = x_coeff.get("hpf").get("outputCoeff")[0] * prev_out + x_coeff.get("hpf").get("inputCoeff")[0] * curr_in + x_coeff.get("hpf").get("inputCoeff")[1] * prev_in
     else:
