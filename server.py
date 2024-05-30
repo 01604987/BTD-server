@@ -3,13 +3,15 @@ import threading
 import time
 from processing import network_package as np, storer
 from processing.data_collection import DC
+from conrols.actions import *
 
 
 SIZE = 64 # how many symbols (bytes) to read
-PORT = 5000 # port number to listen on
+PORT = 50 # port number to listen on
 # need to adjust this function to get correct host address for hosts that have multiple adapters
 #SERVER = socket.gethostbyname_ex(socket.gethostname())[2][2] # this gets the current IP addr.
-SERVER = '0.0.0.0'
+#SERVER = '0.0.0.0'
+SERVER = '172.20.10.14'
 ADDR = (SERVER, PORT)
 DISCONNECT_MESSAGE = "!DISCONNECT"
 
@@ -72,6 +74,8 @@ def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
     print(f"[NEW CONNECTION] {addr} connected.")
 
     termination = 'end'.encode()
+    left_swipe = 'CSL'.encode() # Command Swipe Left (CSL)
+    right_swipe = 'CSR'.encode() # Command Swipe Right (CSR)
     st = time.time()
     a= 0
     connected = True
@@ -88,6 +92,12 @@ def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
                 # no need to take the last data captured before end because will always receive 12 bytes as chunk.
                 #msg= msg + data.decode('utf-8')[:-3]
                 break
+            elif left_swipe in data:
+                print("Left Swipe Command recieved!")
+                previous_slide()
+            elif right_swipe in data:
+                print("Right Swipe Command recieved!")
+                next_slide()
             else:
                 raw_data = np.ntohs_array(data)
                 # push to queue for processing by another thread.
