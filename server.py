@@ -131,6 +131,8 @@ def closer(exit:threading.Event, conn:socket):
     while (not exit.is_set()):
         time.sleep(1)
     
+    print("closing conn, sending Bye!")
+    conn.send("Bye!".encode('utf-8'))
     conn.close()
     udp_socket.close()
 
