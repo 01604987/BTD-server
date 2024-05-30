@@ -50,6 +50,7 @@ def apply_complimentary_filter(alpha, gyro_angles:list, accel_angles:list):
     angle_y = alpha * gyro_angles[1] + (1.0 - alpha) * accel_angles[1]
     angle_z = gyro_angles[2]
 
+
     return [angle_x, angle_y, angle_z]
 
 

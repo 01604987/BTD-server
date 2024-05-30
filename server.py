@@ -7,11 +7,11 @@ from conrols.actions import *
 
 
 SIZE = 64 # how many symbols (bytes) to read
-PORT = 50 # port number to listen on
+PORT = 5000 # port number to listen on
 # need to adjust this function to get correct host address for hosts that have multiple adapters
 #SERVER = socket.gethostbyname_ex(socket.gethostname())[2][2] # this gets the current IP addr.
-#SERVER = '0.0.0.0'
-SERVER = '172.20.10.14'
+SERVER = '0.0.0.0'
+#SERVER = '172.20.10.14'
 ADDR = (SERVER, PORT)
 DISCONNECT_MESSAGE = "!DISCONNECT"
 
@@ -35,7 +35,7 @@ def listen_udp_sock(exit:threading.Event, dc:DC):
             data, addr = udp_socket.recvfrom(24)
             if not data:
                 print("no message..")  # connection closed by client
-                break
+                #break
             else:
                 #raw_data = np.ntohs_array(data)
                 raw_data = np.ntohs_array_imu_float(data)

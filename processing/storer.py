@@ -2,7 +2,7 @@ import csv
 import threading
 import queue
 from processing.data_collection import DC
-from processing import complementary_filter, linear_acceleration
+from processing import complementary_filter, linear_acceleration, filter
 import os
 
 data_folder = "./data"
@@ -17,17 +17,25 @@ raw_signal = "./data/raw_signal.csv"
 processed_signal = "./data/processed_signal.csv"
 orientation_data = "./data/processed_orientation.csv"
 
-def store_imu(data):
-    with dc.accel_list_lock:
-        dc.imu_raw.append(data)
-        dc.imu_raw.pop(0)
+def store_imu(data, filtered = False):
+
+    if not filtered:
+        with dc.imu_list_lock:
+            dc.imu_raw.append(data)
+            dc.imu_raw.pop(0)
+            to_csv(data, raw = 'raw')
+
+    else :
+        with dc.imu_list_filtered_lock:
+            dc.imu_filtered.append(data)
+            dc.imu_filtered.pop(0)
+    
 
 def store_orientation(data):
     with dc.orientation_lock:
         dc.orientation.append(data)
         dc.orientation.pop(0)
-    
-    to_csv(data, orientation = True)
+
 
 def store_linear_accel(data):
     with dc.linear_accel_lock:
@@ -51,7 +59,7 @@ def store(data, raw = False):
 # persist to csv for alternative processing 
 def to_csv(data, **kwargs):
 
-    path = raw_signal
+    path = ""
 
 
     if kwargs.get('raw'):
@@ -68,19 +76,18 @@ def to_csv(data, **kwargs):
         writer = csv.writer(file)
         writer.writerow(data)
 
-#deprecated do not use
-def flush():
-    for el in dc.accel_raw:
-        to_csv(el, False)
-
-    for el in dc.accel_processed:
-        to_csv(el, True)
 
 
 # fetch queue elements for processing and push to in memory/csv store
 def start(exit:threading.Event, data_collection:DC):
     global dc
     dc = data_collection
+
+    input_coeff = [0.08613, 0.08613]
+    output_coeff = [0.82773]
+
+    x_prev_in = 0
+    y_prev_in = 0
     while not exit.is_set():
         try:
             raw = dc.data_q.get(block= True, timeout=5)
@@ -90,11 +97,33 @@ def start(exit:threading.Event, data_collection:DC):
             #store(proccessed, raw = False)
             break
 
+#TODO think about new thread for filtering 
         #proccessed = raw
         store_imu(raw)
-        orientation = complementary_filter.estimate_orientation([raw[0], raw[1], raw[2]], [raw[3], raw[4], raw[5]])
+        
+        x_acc = filter.applyFilter(dc.imu_filtered[dc.in_memory_frames - 1][0], raw[0], dc.imu_raw[dc.in_memory_frames - 1][0], input_coeff, output_coeff)
+
+        x_acc_hpf = filter.applyFilter_x(dc.imu_filtered[dc.in_memory_frames - 1][0], raw[0], dc.imu_raw[dc.in_memory_frames - 1][0], hpf=True)
+        x_acc_bandpass = filter.applyFilter_x(dc.imu_filtered[dc.in_memory_frames - 1][0], x_acc, x_prev_in, hpf=False)
+
+        y_acc = filter.applyFilter(dc.imu_filtered[dc.in_memory_frames - 1][1], raw[1], dc.imu_raw[dc.in_memory_frames - 1][1], input_coeff, output_coeff)
+        
+        z_acc = filter.applyFilter(dc.imu_filtered[dc.in_memory_frames - 1][2], raw[2], dc.imu_raw[dc.in_memory_frames - 1][2], input_coeff, output_coeff)
+        x_gyr = filter.applyFilter(dc.imu_filtered[dc.in_memory_frames - 1][3], raw[3], dc.imu_raw[dc.in_memory_frames - 1][3], input_coeff, output_coeff)
+        y_gyr = filter.applyFilter(dc.imu_filtered[dc.in_memory_frames - 1][4], raw[4], dc.imu_raw[dc.in_memory_frames - 1][4], input_coeff, output_coeff)
+        z_gyr = filter.applyFilter(dc.imu_filtered[dc.in_memory_frames - 1][5], raw[5], dc.imu_raw[dc.in_memory_frames - 1][5], input_coeff, output_coeff)
+
+
+        x_prev_in = x_acc_hpf
+
+        filtered = (x_acc_bandpass, y_acc, z_acc, x_gyr, y_gyr, z_gyr)
+        store_imu(filtered, 1)
+
+        #orientation = complementary_filter.estimate_orientation([raw[0], raw[1], raw[2]], [raw[3], raw[4], raw[5]])
+        orientation = complementary_filter.estimate_orientation([x_acc_bandpass, y_acc, z_acc], [x_gyr, y_gyr, z_gyr])
         store_orientation(orientation)
-        linear_accel = linear_acceleration.free_linear_acceleration([raw[0], raw[1], raw[2]], orientation)
+        #linear_accel = linear_acceleration.free_linear_acceleration([raw[0], raw[1], raw[2]], orientation)
+        linear_accel = linear_acceleration.free_linear_acceleration([x_acc_bandpass, y_acc, z_acc], orientation)
         store_linear_accel(linear_accel)
         #store(raw, True)
 

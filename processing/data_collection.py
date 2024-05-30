@@ -23,6 +23,10 @@ class DC:
         # init list for raw imu readings
         self.imu_raw = [[0, 0, 0, 0, 0, 0] for _ in range(self.in_memory_frames)]
 
+        # init list for filtered imu readings
+        self.imu_list_filtered_lock = threading.Lock()
+        self.imu_filtered =  [[0, 0, 0, 0, 0, 0] for _ in range(self.in_memory_frames)]
+
         self.orientation_lock = threading.Lock()
         self.orientation = [[0, 0, 0] for _ in range(self.in_memory_frames)]
 
