@@ -1,4 +1,5 @@
 import pyautogui
+import time
 
 def next_slide():
     pyautogui.press('right')
@@ -34,6 +35,13 @@ def move_mouse_smoothly(start_point, end_point, duration=1):
         x = start_point[0] + step_x * i
         y = start_point[1] + step_y * i
         pyautogui.moveTo(x, y, duration=pyautogui.MINIMUM_DURATION)
+
+    # Measure time to move the mouse
+def measure_move_time(x, y):
+    start_time = time.time()
+    move_mouse_right(x, y)
+    end_time = time.time()
+    return end_time - start_time
 
 def drag_and_drop(start_x, start_y, drop_x, drop_y):
     # Move to starting position
