@@ -172,8 +172,8 @@ def start(exit:threading.Event, dc:DC):
     storer_t = threading.Thread(target=storer.start, args=(exit, dc))
     storer_t.start()
     
-    input_t = threading.Thread(target=input.start, args=(exit, dc))
-    input_t.start()
+    #input_t = threading.Thread(target=input.start, args=(exit, dc))
+    #input_t.start()
 
     terminator = threading.Thread(target=closer, args=(exit, conn))
     terminator.start()

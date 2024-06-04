@@ -5,7 +5,7 @@ from processing.data_collection import DC
 
 def main():
 
-    dc = DC(frames=5000)
+    dc = DC(frames=3000)
     exit_flag = threading.Event()  # Event to signal thread to exit
 
     # Create and start the thread
