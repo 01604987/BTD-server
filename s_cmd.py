@@ -1,0 +1,5 @@
+termination = 'end'.encode()
+left_swipe = 'CSL'.encode() # Command Swipe Left (CSL)
+right_swipe = 'CSR'.encode() # Command Swipe Right (CSR)
+mouse_begin = 'm-begin'.encode()
+mouse_end = 'm-end'.encode()

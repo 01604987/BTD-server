@@ -29,21 +29,21 @@ def calculate_accel_angles(current_accel_xyz:list):
         accel_angle_y = 0
     accel_angle_z = 0
 
-    return [accel_angle_x, accel_angle_y, accel_angle_z]
+    return (accel_angle_x, accel_angle_y, accel_angle_z)
 
 def calculate_gyro_angles(current_gyro_xyz:list, last_angle_xyz:list, dt):
     gyro_angle_x = current_gyro_xyz[0] *dt + last_angle_xyz[0]
     gyro_angle_y = current_gyro_xyz[1] *dt + last_angle_xyz[1]
     gyro_angle_z = current_gyro_xyz[2] *dt + last_angle_xyz[2]
 
-    return [gyro_angle_x, gyro_angle_y, gyro_angle_z]
+    return (gyro_angle_x, gyro_angle_y, gyro_angle_z)
     
 def calculate_drifting_gyro_agnles(current_gyro_xyz:list, last_gyro_angle_xyz:list, dt):
     unfiltered_gyro_angle_x = current_gyro_xyz[0] *dt + last_gyro_angle_xyz[0]
     unfiltered_gyro_angle_y = current_gyro_xyz[1] *dt + last_gyro_angle_xyz[1]
     unfiltered_gyro_angle_z = current_gyro_xyz[2] *dt + last_gyro_angle_xyz[2]
 
-    return [unfiltered_gyro_angle_x, unfiltered_gyro_angle_y, unfiltered_gyro_angle_z]
+    return (unfiltered_gyro_angle_x, unfiltered_gyro_angle_y, unfiltered_gyro_angle_z)
     
 def apply_complimentary_filter(alpha, gyro_angles:list, accel_angles:list):
     angle_x = alpha * gyro_angles[0] + (1.0 - alpha) * accel_angles[0]
@@ -51,7 +51,7 @@ def apply_complimentary_filter(alpha, gyro_angles:list, accel_angles:list):
     angle_z = gyro_angles[2]
 
 
-    return [angle_x, angle_y, angle_z]
+    return (angle_x, angle_y, angle_z)
 
 
 

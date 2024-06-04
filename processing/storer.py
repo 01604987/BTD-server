@@ -81,7 +81,32 @@ def to_csv(data, **kwargs):
         writer = csv.writer(file)
         writer.writerow(data)
 
+def start_new(exit:threading.Event, data_collection:DC, mouse_event:threading.Event = None):
+    global dc
+    dc = data_collection
 
+    while not exit.is_set():
+        try:
+            raw = dc.data_q.get(block= True, timeout=5)
+        #TODO! QUEUE MUST BE EMPTY when switching between mouse events
+        except queue.Empty:
+            if exit.is_set():
+                print("queue empty and server shutting down, terminating thread")
+                break
+            if mouse_event.is_set():
+                print("!!!! Queue empty during mouse events !!!!")
+                continue
+
+        store_imu(raw)
+        orientation = complementary_filter.estimate_orientation([raw[0], raw[1], raw[2]], [raw[3], raw[4], raw[5]])
+        store_orientation(orientation)
+        linear_accel = linear_acceleration.free_linear_acceleration([raw[0], raw[1], raw[2]], orientation)
+        store_linear_accel(linear_accel) 
+        x = filter.bandpass_second_order(dc.imu_filtered, dc.linear_accel, axis = 0 , n_out = dc.in_memory_frames, n_in=dc.in_memory_frames)
+        y = filter.bandpass_second_order(dc.imu_filtered, dc.linear_accel, axis = 1 , n_out = dc.in_memory_frames, n_in=dc.in_memory_frames)
+        z = filter.bandpass_second_order(dc.imu_filtered, dc.linear_accel, axis = 2 , n_out = dc.in_memory_frames, n_in=dc.in_memory_frames)
+        filtered = (x, y, z, raw[3], raw[4], raw[5])
+        store_imu(filtered, 1)
 
 # fetch queue elements for processing and push to in memory/csv store
 def start(exit:threading.Event, data_collection:DC):
@@ -97,6 +122,7 @@ def start(exit:threading.Event, data_collection:DC):
     while not exit.is_set():
         try:
             raw = dc.data_q.get(block= True, timeout=5)
+        #TODO! QUEUE MUST BE EMPTY when switching between udp and tcp
         except queue.Empty:
             print("queue empty, terminating thread")
             #store(raw, raw = True)

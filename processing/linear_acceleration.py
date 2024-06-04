@@ -28,7 +28,7 @@ def free_linear_acceleration(filtered_accel, filtered_orientation):
     # Subtract the gravitational component to get the linear acceleration
     a_linear = accel - g_device
 
-    result = a_linear.tolist()
+    result = tuple(a_linear.tolist())
 
     return result
 

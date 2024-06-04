@@ -4,6 +4,7 @@ import time
 from processing import network_package as np, storer
 from processing.data_collection import DC
 from conrols.actions import *
+import s_cmd
 
 
 SIZE = 64 # how many symbols (bytes) to read
@@ -26,21 +27,15 @@ udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 udp_socket.settimeout(3)
 udp_socket.bind((SERVER, PORT))
 
-def listen_udp_sock(exit:threading.Event, dc:DC):
+def listen_udp_sock(exit:threading.Event, dc:DC, mouse_events:threading.Event = None):
     print(f"Listen to udp sock under {SERVER}:{PORT}")
     connected = True
     while connected and not exit.is_set():
+        # blocks until event has been set
+        mouse_events.wait()
         try:
             # TODO recv 24 bytes to include xyz gyro data
             data, addr = udp_socket.recvfrom(24)
-            if not data:
-                print("no message..")  # connection closed by client
-                #break
-            else:
-                #raw_data = np.ntohs_array(data)
-                raw_data = np.ntohs_array_imu_float(data)
-                # push to queue for processing by another thread.
-                dc.data_q.put(raw_data)
         except socket.timeout:
             print("Udp timeout")
         except ConnectionResetError:
@@ -50,6 +45,14 @@ def listen_udp_sock(exit:threading.Event, dc:DC):
         except OSError as e:
             print(f"Socket error occurred: {e}")
             break
+        
+        if not data:
+            print("no message..")  # connection closed by client
+            #break
+
+        raw_data = np.ntohs_array_imu_float(data)
+        # push to queue for processing by another thread.
+        dc.data_q.put(raw_data)
 
 
 def calc_freq(st:time.time, imu_raw):
@@ -68,6 +71,57 @@ def calc_freq(st:time.time, imu_raw):
     print ((len(imu_raw) - count), 'messages in approx.',elapsed,'s')
     freq = 1/perMessage
     print(freq)
+
+
+
+def handle_client_new(conn, addr, exit:threading.Event, dc:DC, mouse_events:threading.Event = None):
+    print(f"[NEW CONNECTION] {addr} connected.")
+    
+
+    st = time.time()
+
+    while not exit.is_set():
+        try:
+            # all commands are string based. Currently max of 20 bytes string
+            data = conn.recv(20) 
+        except ConnectionAbortedError:
+            print("Connection aborted")
+            return
+        
+        if not data:
+            # most likely never occurs unless client sends empty package
+            print("no messages..")
+            break
+        
+        match data:
+            case s_cmd.termination:
+                print("end of transmission")
+                break
+            case s_cmd.left_swipe:
+                print("Left Swipe Command recieved!")
+                previous_slide()
+            case s_cmd.right_swipe:
+                print("Right Swipe Command recieved!")
+                next_slide()
+            case s_cmd.mouse_begin:
+                if not mouse_events.is_set():
+                    mouse_events.set()
+            case s_cmd.mouse_end:
+                if mouse_events.is_set():
+                    mouse_events.clear()
+
+
+
+    
+    
+    conn.send("Bye!".encode('utf-8'))
+    conn.close()
+    udp_socket.close()
+
+    calc_freq(st, dc.imu_raw)
+    return
+
+        
 
 # TODO rewrite TCP to accept string or numeric commands
 def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
@@ -115,17 +169,6 @@ def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
     calc_freq(st, dc.imu_raw)
     return
 
-    # get the end time          
-    et = time.time() 
-    print('Done')
-    # get the execution time
-    elapsed = et - st
-    perMessage = elapsed/a
-    print (a, 'messages in approx.',elapsed,'s')
-    freq = 1/perMessage
-    print(freq)
-
-
 
 def closer(exit:threading.Event, conn:socket):
     while (not exit.is_set()):
@@ -155,11 +198,15 @@ def start(exit:threading.Event, dc:DC):
             else:
                 print("Accept connections Timeout. Retry in {} seconds".format(server.gettimeout()))
     
+    # Event to signal mouse event proccessing
+    mouse_events = threading.Event()
+    mouse_events.set()
 
-    tcp = threading.Thread(target=handle_client_int, args=(conn, addr, exit, dc))
+    #tcp = threading.Thread(target=handle_client_int, args=(conn, addr, exit, dc))
+    tcp = threading.Thread(target=handle_client_new, args=(conn, addr, exit, dc, mouse_events))
     tcp.start()
 
-    udp = threading.Thread(target=listen_udp_sock, args=(exit, dc))
+    udp = threading.Thread(target=listen_udp_sock, args=(exit, dc, mouse_events))
     udp.start()
 
     # TODO need to remove this in order to start storer with empty queue
