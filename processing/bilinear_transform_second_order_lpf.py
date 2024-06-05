@@ -64,8 +64,50 @@ def second_order_hpf_params(fc, fs, zeta=np.sqrt(2)/2):
 
     return a, b
 
+def third_order_lpf_params(fc, fs, zeta1=np.sqrt(2)/2, zeta2=np.sqrt(2)/2):
+    w0 = 2 * np.pi * fc  # cutoff frequency (in rad/s)
+    
+    # Define the second-order transfer function numerator and denominator coefficients
+    num = [w0**3]  # Transfer function numerator coefficients (second-order)
+    den = [1, 2*zeta2*w0, 2*zeta1*w0, w0**3]  # Transfer function denominator coefficients (standard second-order)
+
+    lowPass = signal.TransferFunction(num, den)  # Transfer function
+    dt = 1.0 / fs  # time between samples
+
+    # Convert to discrete time using bilinear transformation
+    result = lowPass.to_discrete(dt, method='gbt', alpha=0.5)
+
+    # Extract the coefficients
+    b = result.num  # numerator coefficients
+    a = -result.den  # denominator coefficients
+
+    return a, b
+
+
+
+def third_order_hpf_params(fc, fs, zeta1=np.sqrt(2)/2, zeta2=np.sqrt(2)/2):
+    w0 = 2 * np.pi * fc  # cutoff frequency (in rad/s)
+    
+    # Define the second-order transfer function numerator and denominator coefficients
+    num = [1, 0, 0, 0]  # Transfer function numerator coefficients (second-order)
+    den = [1, 2*zeta2*w0, 2*zeta1*w0, w0**3]  # Transfer function denominator coefficients (standard second-order)
+
+    lowPass = signal.TransferFunction(num, den)  # Transfer function
+    dt = 1.0 / fs  # time between samples
+
+    # Convert to discrete time using bilinear transformation
+    result = lowPass.to_discrete(dt, method='gbt', alpha=0.5)
+
+    # Extract the coefficients
+    b = result.num  # numerator coefficients
+    a = -result.den  # denominator coefficients
+
+    return a, b
+
+
+
 # Example usage
-cutoff_freq_lpf = 4  # 10 Hz cutoff frequency
+cutoff_freq_lpf = 3  # 10 Hz cutoff frequency
 cutoff_freq_hpf = 2
 sampling_rate = 100  # 100 Hz sampling rate
 
@@ -127,6 +169,35 @@ c["hpf_2"] = {
 }
 
 print("second order hpf")
+print("Denominator coefficients (a):", a)
+print("Numerator coefficients (b):", b)
+
+a, b = third_order_lpf_params(cutoff_freq_lpf, sampling_rate)
+c["lpf_3"] = {
+    "a1" : a[1],
+    "a2" : a[2],
+    "a3" : a[3],
+    "b0" : b[0],
+    "b1" : b[1],
+    "b2" : b[2],
+    "b3" : b[3]
+}
+
+print("third order lpf")
+print("Denominator coefficients (a):", a)
+print("Numerator coefficients (b):", b)
+a, b = third_order_hpf_params(cutoff_freq_hpf, sampling_rate)
+c["hpf_3"] = {
+    "a1" : a[1],
+    "a2" : a[2],
+    "a3" : a[3],
+    "b0" : b[0],
+    "b1" : b[1],
+    "b2" : b[2],
+    "b3" : b[3]
+}
+
+print("third order hpf")
 print("Denominator coefficients (a):", a)
 print("Numerator coefficients (b):", b)
 

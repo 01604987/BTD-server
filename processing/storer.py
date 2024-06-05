@@ -2,7 +2,7 @@ import csv
 import threading
 import queue
 from processing.data_collection import DC
-from processing import complementary_filter, linear_acceleration, filter
+from processing import complementary_filter, linear_acceleration, filter, calculate_input
 import os
 
 data_folder = "./data"
@@ -31,7 +31,10 @@ def store_imu(data, filtered = False):
             dc.imu_filtered.append(data)
             dc.imu_filtered.pop(0)
             to_csv(data, filtered = 1)
-    
+
+def store_velo(data) :
+    dc.velocity.append(data)
+    dc.velocity.pop(0)
 
 def store_orientation(data):
     with dc.orientation_lock:
@@ -186,8 +189,14 @@ def start(exit:threading.Event, data_collection:DC):
         y = filter.bandpass_second_order(dc.imu_filtered, dc.linear_accel, axis = 1 , n_out = dc.in_memory_frames, n_in=dc.in_memory_frames)
         z = filter.bandpass_second_order(dc.imu_filtered, dc.linear_accel, axis = 2 , n_out = dc.in_memory_frames, n_in=dc.in_memory_frames) * 0
 
+    
+
         filtered = (x, y, z, raw[3], raw[4], raw[5])
         store_imu(filtered, 1)
+        vx = calculate_input.calc_velocity(filtered, dc.velocity, 0, dc.in_memory_frames)
+        vy = calculate_input.calc_velocity(filtered, dc.velocity, 1, dc.in_memory_frames)
+        velo = (vx, vy, 0, raw[3], raw[4], raw[5])
+        store_velo(velo)
 
 
         #store(raw, True)

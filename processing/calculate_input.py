@@ -21,3 +21,6 @@ def start(exit:threading.Event, data_collection:DC):
         counter += 1
         pass
         
+def calc_velocity(acceleration, velocity, axis, n = 3000, time_step = 1/100 ):
+    velocity = velocity[n-1][axis] + acceleration[axis] * time_step
+    return velocity

@@ -200,6 +200,8 @@ def start(exit:threading.Event, dc:DC):
     
     # Event to signal mouse event proccessing
     mouse_events = threading.Event()
+    #! REMOVE event set.
+    # only for debug purposes 
     mouse_events.set()
 
     #tcp = threading.Thread(target=handle_client_int, args=(conn, addr, exit, dc))
