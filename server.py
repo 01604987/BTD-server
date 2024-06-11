@@ -36,6 +36,9 @@ def listen_udp_sock(exit:threading.Event, dc:DC, mouse_events:threading.Event = 
         try:
             # TODO recv 24 bytes to include xyz gyro data
             data, addr = udp_socket.recvfrom(24)
+            if not data:
+                print("no message..")  # connection closed by client
+                #break
         except socket.timeout:
             print("Udp timeout")
         except ConnectionResetError:
@@ -46,9 +49,7 @@ def listen_udp_sock(exit:threading.Event, dc:DC, mouse_events:threading.Event = 
             print(f"Socket error occurred: {e}")
             break
         
-        if not data:
-            print("no message..")  # connection closed by client
-            #break
+
 
         raw_data = np.ntohs_array_imu_float(data)
         # push to queue for processing by another thread.
@@ -88,30 +89,28 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, mouse_events:thre
             print("Connection aborted")
             return
         
+
         if not data:
-            # most likely never occurs unless client sends empty package
-            print("no messages..")
+            print("no message..")  # connection closed by client
             break
+        elif s_cmd.termination in data:
+            print("end of transmission..")
+            break
+        elif s_cmd.left_swipe in data:
+            print("Left Swipe Command recieved!")
+            previous_slide()
+        elif s_cmd.right_swipe in data:
+            print("Right Swipe Command recieved!")
+            next_slide()
+        elif s_cmd.mouse_begin in data:
+            print("mouse begin")
+            if not mouse_events.is_set():
+                mouse_events.set()
+        elif s_cmd.mouse_end in data:
+            print("mouse end")
+            if mouse_events.is_set():
+                mouse_events.clear()
         
-        match data:
-            case s_cmd.termination:
-                print("end of transmission")
-                break
-            case s_cmd.left_swipe:
-                print("Left Swipe Command recieved!")
-                previous_slide()
-            case s_cmd.right_swipe:
-                print("Right Swipe Command recieved!")
-                next_slide()
-            case s_cmd.mouse_begin:
-                if not mouse_events.is_set():
-                    mouse_events.set()
-            case s_cmd.mouse_end:
-                if mouse_events.is_set():
-                    mouse_events.clear()
-
-
-
     
     
     conn.send("Bye!".encode('utf-8'))
@@ -202,7 +201,7 @@ def start(exit:threading.Event, dc:DC):
     mouse_events = threading.Event()
     #! REMOVE event set.
     # only for debug purposes 
-    mouse_events.set()
+    #mouse_events.set()
 
     #tcp = threading.Thread(target=handle_client_int, args=(conn, addr, exit, dc))
     tcp = threading.Thread(target=handle_client_new, args=(conn, addr, exit, dc, mouse_events))
@@ -218,7 +217,8 @@ def start(exit:threading.Event, dc:DC):
         time.sleep(0.5)
     
     print("Starting Storer")
-    storer_t = threading.Thread(target=storer.start, args=(exit, dc))
+    #storer_t = threading.Thread(target=storer.start, args=(exit, dc))
+    storer_t = threading.Thread(target=storer.start, args=(exit, dc, mouse_events))
     storer_t.start()
     
     #input_t = threading.Thread(target=input.start, args=(exit, dc))

@@ -90,6 +90,7 @@ def start_new(exit:threading.Event, data_collection:DC, mouse_event:threading.Ev
 
     while not exit.is_set():
         try:
+            mouse_event.wait()
             raw = dc.data_q.get(block= True, timeout=5)
         #TODO! QUEUE MUST BE EMPTY when switching between mouse events
         except queue.Empty:
@@ -112,7 +113,7 @@ def start_new(exit:threading.Event, data_collection:DC, mouse_event:threading.Ev
         store_imu(filtered, 1)
 
 # fetch queue elements for processing and push to in memory/csv store
-def start(exit:threading.Event, data_collection:DC):
+def start(exit:threading.Event, data_collection:DC,  mouse_event:threading.Event = None):
     global dc
     dc = data_collection
 
@@ -124,6 +125,7 @@ def start(exit:threading.Event, data_collection:DC):
     z_prev = 0
     while not exit.is_set():
         try:
+            mouse_event.wait()
             raw = dc.data_q.get(block= True, timeout=5)
         #TODO! QUEUE MUST BE EMPTY when switching between udp and tcp
         except queue.Empty:
