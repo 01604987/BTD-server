@@ -3,7 +3,8 @@ import threading
 import time
 from processing import network_package as np, storer
 from processing.data_collection import DC
-from conrols.actions import *
+from controls.actions import *
+from controls.ctypes_mouse import hold_lmb, release_lmb
 import s_cmd
 
 
@@ -111,7 +112,15 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, mouse_events:thre
             if mouse_events.is_set():
                 mouse_events.clear()
                 dc.reset()
-        
+                release_lmb()
+        elif s_cmd.mouse_hold in data:
+            print("holding lmb")
+            hold_lmb()
+        elif s_cmd.index_tapped in data:
+            print("tap index")
+            hold_lmb()
+            release_lmb()
+
     
     
     conn.send("Bye!".encode('utf-8'))
@@ -122,7 +131,7 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, mouse_events:thre
     return
 
         
-
+#! DEPRECATED DO NOT USE
 # TODO rewrite TCP to accept string or numeric commands
 def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
     print(f"[NEW CONNECTION] {addr} connected.")
@@ -186,7 +195,6 @@ def start(exit:threading.Event, dc:DC):
 
     conn = None
 
-    # server.accept is blocking, preventing graceful shutdown
     # use exit.is_set()
     while not conn:
         try:
@@ -200,11 +208,10 @@ def start(exit:threading.Event, dc:DC):
     
     # Event to signal mouse event proccessing
     mouse_events = threading.Event()
-    #! REMOVE event set.
-    # only for debug purposes 
-    #mouse_events.set()
-
+    
+    # deprecated
     #tcp = threading.Thread(target=handle_client_int, args=(conn, addr, exit, dc))
+
     tcp = threading.Thread(target=handle_client_new, args=(conn, addr, exit, dc, mouse_events))
     tcp.start()
 
@@ -218,13 +225,11 @@ def start(exit:threading.Event, dc:DC):
         time.sleep(0.5)
     
     print("Starting Storer")
+
     #storer_t = threading.Thread(target=storer.start, args=(exit, dc))
     storer_t = threading.Thread(target=storer.start, args=(exit, dc, mouse_events))
     storer_t.start()
     
-    #input_t = threading.Thread(target=input.start, args=(exit, dc))
-    #input_t.start()
-
     terminator = threading.Thread(target=closer, args=(exit, conn))
     terminator.start()
 

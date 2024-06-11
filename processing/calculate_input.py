@@ -1,7 +1,6 @@
 import threading
 import math
-from conrols import actions
-from conrols import ctypes_mouse
+from controls import ctypes_mouse
 from processing.data_collection import DC
 from processing import complementary_filter, linear_acceleration, filter
 

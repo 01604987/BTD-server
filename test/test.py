@@ -1,5 +1,5 @@
 import time
-from actions import *
+from controls.actions import *
 
 def main():
     # Number of slides to navigate
