@@ -41,7 +41,7 @@ class DC:
         self.velocity = [(0, 0, 0) for _ in range(self.in_memory_frames)]
 
     def reset(self):
-        self.data_q = queue.Queue()
+        #self.data_q = queue.Queue()
         self.imu_raw = [(0, 0, 0, 0, 0, 0) for _ in range(self.in_memory_frames)]
         self.imu_filtered =  [(0, 0, 0, 0, 0, 0) for _ in range(self.in_memory_frames)]
         self.orientation = [(0, 0, 0) for _ in range(self.in_memory_frames)]

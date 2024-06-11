@@ -110,6 +110,7 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, mouse_events:thre
             print("mouse end")
             if mouse_events.is_set():
                 mouse_events.clear()
+                dc.reset()
         
     
     

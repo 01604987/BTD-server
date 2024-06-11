@@ -199,6 +199,8 @@ def start(exit:threading.Event, data_collection:DC,  mouse_event:threading.Event
         vy = calculate_input.calc_velocity(filtered, dc.velocity, 1, dc.in_memory_frames)
         velo = (vx, vy, 0, raw[3], raw[4], raw[5])
         store_velo(velo)
+        calculate_input.move(orientation)
+        
 
 
         #store(raw, True)
