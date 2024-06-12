@@ -1,4 +1,7 @@
 matplotlib==3.8.4
+numpy==1.26.4
+PyAutoGUI==0.9.54
+pynput==1.7.7
 PyQt5==5.15.10
 PyQt5_sip==12.13.0
-pyautogui==0.9.54
+scipy==1.13.1
