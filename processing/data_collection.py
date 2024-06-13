@@ -42,12 +42,19 @@ class DC:
 
     def reset(self):
         #self.data_q = queue.Queue()
+        self.flush_queue(self.data_q)
         self.imu_raw = [(0, 0, 0, 0, 0, 0) for _ in range(self.in_memory_frames)]
         self.imu_filtered =  [(0, 0, 0, 0, 0, 0) for _ in range(self.in_memory_frames)]
         self.orientation = [(0, 0, 0) for _ in range(self.in_memory_frames)]
         self.linear_accel = [(0, 0, 0) for _ in range(self.in_memory_frames)]
         self.velocity = [(0, 0, 0) for _ in range(self.in_memory_frames)]
 
+    def flush_queue(self, q):
+        while not q.empty():
+            try:
+                q.get_nowait()
+            except queue.Empty:
+                break
 class AccelGyroData:
 
     def __init__(self):
