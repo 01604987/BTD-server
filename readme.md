@@ -22,7 +22,7 @@ This repository contains server code for receiving, preprocessing and plotting r
     - ip adress: check on host
         - Windows: ipconfig
         - Mac: ifconfig | grep "inet " | grep -v 127.0.0.1
-    - port: 5000
+    - port: 5050
 
 - Configure ESP-IDF network/wifi connection
 
