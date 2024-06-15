@@ -9,8 +9,8 @@ from processing import complementary_filter, linear_acceleration, filter
 # scale factor 1.0
 # 45 deg == normal 
 def start(exit:threading.Event, dc:DC, mouse_events:threading.Event):
-    x_null = 5
-    y_null = 5
+    x_null = 4
+    y_null = 4
     while(not exit.is_set()):
         mouse_events.wait()
 
@@ -34,8 +34,8 @@ def start(exit:threading.Event, dc:DC, mouse_events:threading.Event):
         ctypes_mouse.move_mouse_relative(x, y)
 
 def move(current_orientation):
-    x_null = 5
-    y_null = 5
+    x_null = 4
+    y_null = 4
 
     x = 0
     y = 0
@@ -48,7 +48,7 @@ def move(current_orientation):
     if abs(o[0]) > y_null:
         y = exponential_transfer(normalize_input(o[0]))
         y = round(normalize_output(y))
-        if o[0] > 0:
+        if o[0] < 0:
             y = -y
     
     # calculate next x, y movement
@@ -71,7 +71,7 @@ def normalize_input(input, in_min= 10, in_max = 90):
 
     return out
 
-def normalize_output(input, in_min= 1, in_max =  math.e, out_min = 1, out_max = 10):
+def normalize_output(input, in_min= 1, in_max =  math.e, out_min = 1, out_max = 15):
     out = out_min + (input - in_min) * ((out_max - out_min)/(in_max - in_min))
     return out
 

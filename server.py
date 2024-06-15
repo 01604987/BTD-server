@@ -9,7 +9,7 @@ import s_cmd
 
 
 SIZE = 64 # how many symbols (bytes) to read
-PORT = 5000 # port number to listen on
+PORT = 5050 # port number to listen on
 # need to adjust this function to get correct host address for hosts that have multiple adapters
 #SERVER = socket.gethostbyname_ex(socket.gethostname())[2][2] # this gets the current IP addr.
 SERVER = '0.0.0.0'
