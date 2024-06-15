@@ -9,7 +9,7 @@ import s_cmd
 
 
 SIZE = 64 # how many symbols (bytes) to read
-PORT = 5050 # port number to listen on
+PORT = 5500 # port number to listen on
 # need to adjust this function to get correct host address for hosts that have multiple adapters
 #SERVER = socket.gethostbyname_ex(socket.gethostname())[2][2] # this gets the current IP addr.
 SERVER = '0.0.0.0'
@@ -241,10 +241,12 @@ def start(exit:threading.Event, dc:DC):
     stream_events = threading.Event()
     mouse_events = threading.Event()
     vol_events = threading.Event()
+    zoom_events = threading.Event()
     events = {
         "stream": stream_events,
         "mouse" : mouse_events,
-        "volume": vol_events
+        "volume": vol_events,
+        "zoom" : zoom_events
     }
     
     # deprecated
