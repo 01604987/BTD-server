@@ -93,6 +93,7 @@ if system == 'Windows':
     # requires control to be hold
     def zoom(delta = 0):
         hold_ctrl()
+        delta = delta * 120
         user32.mouse_event(MOUSEEVENTF_WHEEL, 0, 0, delta, 0)
 
 
@@ -170,7 +171,7 @@ elif system == 'Darwin':
             kb.release(Key.cmd)
             ctrl = 0
         
-    def zoom(delta):
+    def zoom(delta = 0):
         hold_ctrl()
         mouse.scroll(0, delta)
         

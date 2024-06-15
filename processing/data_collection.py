@@ -42,11 +42,11 @@ class DC:
 
     def reset(self):
         #self.data_q = queue.Queue()
-        #self.imu_raw = [(0, 0, 0, 0, 0, 0) for _ in range(self.in_memory_frames)]
-        #self.imu_filtered =  [(0, 0, 0, 0, 0, 0) for _ in range(self.in_memory_frames)]
-        #self.orientation = [(0, 0, 0) for _ in range(self.in_memory_frames)]
-        #self.linear_accel = [(0, 0, 0) for _ in range(self.in_memory_frames)]
-        #self.velocity = [(0, 0, 0) for _ in range(self.in_memory_frames)]
+        self.imu_raw = [(0, 0, 0, 0, 0, 0) for _ in range(self.in_memory_frames)]
+        self.imu_filtered =  [(0, 0, 0, 0, 0, 0) for _ in range(self.in_memory_frames)]
+        self.orientation = [(0, 0, 0) for _ in range(self.in_memory_frames)]
+        self.linear_accel = [(0, 0, 0) for _ in range(self.in_memory_frames)]
+        self.velocity = [(0, 0, 0) for _ in range(self.in_memory_frames)]
         pass
 
     def flush_queue(self, q):

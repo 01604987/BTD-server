@@ -143,6 +143,7 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, events: dict[str,
         elif s_cmd.vol_begin in data:
             print("hold middle")
             if not events.get("stream").is_set():
+                dc.reset()
                 events.get("stream").set()
                 events.get("volume").set()
 
@@ -153,6 +154,7 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, events: dict[str,
 
         elif s_cmd.zoom_begin in data:
             if not events.get("stream").is_set():
+                dc.reset()
                 events.get("stream").set()
                 events.get("zoom").set()
 
