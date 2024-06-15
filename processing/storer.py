@@ -113,13 +113,13 @@ def start_new(exit:threading.Event, data_collection:DC, mouse_event:threading.Ev
         store_imu(filtered, 1)
 
 # fetch queue elements for processing and push to in memory/csv store
-def start(exit:threading.Event, data_collection:DC,  mouse_event:threading.Event = None):
+def start(exit:threading.Event, data_collection:DC,  events: dict[str, threading.Event]):
     global dc
     dc = data_collection
 
     while not exit.is_set():
         try:
-            mouse_event.wait()
+            events.get("stream").wait()
             raw = dc.data_q.get(block= True, timeout=5)
         #TODO! QUEUE MUST BE EMPTY when switching between udp and tcp
         except queue.Empty:
@@ -145,6 +145,10 @@ def start(exit:threading.Event, data_collection:DC,  mouse_event:threading.Event
         velo = (vx, vy, 0, raw[3], raw[4], raw[5])
         store_velo(velo)
 
-        if mouse_event.is_set():
+        if events.get("mouse").is_set():
             calculate_input.move(orientation)
+        elif events.get("volume").is_set():
+            calculate_input.ctrl_volume(orientation)
+        elif events.get("zoom").is_set():
+            calculate_input.ctrl_zoom(orientation)
     

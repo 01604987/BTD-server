@@ -4,7 +4,7 @@ import time
 from processing import network_package as np, storer
 from processing.data_collection import DC
 from controls.actions import *
-from controls.ctypes_mouse import hold_lmb, release_lmb
+from controls.ctypes_mouse import *
 import s_cmd
 
 
@@ -28,12 +28,12 @@ udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 udp_socket.settimeout(3)
 udp_socket.bind((SERVER, PORT))
 
-def listen_udp_sock(exit:threading.Event, dc:DC, mouse_events:threading.Event = None):
+def listen_udp_sock(exit:threading.Event, dc:DC, events:dict[str, threading.Event]):
     print(f"Listen to udp sock under {SERVER}:{PORT}")
     connected = True
     while connected and not exit.is_set():
         # blocks until event has been set
-        mouse_events.wait()
+        events.get("stream").wait()
         try:
             # TODO recv 24 bytes to include xyz gyro data
             data, addr = udp_socket.recvfrom(24)
@@ -76,7 +76,7 @@ def calc_freq(st:time.time, imu_raw):
 
 
 
-def handle_client_new(conn, addr, exit:threading.Event, dc:DC, mouse_events:threading.Event = None):
+def handle_client_new(conn, addr, exit:threading.Event, dc:DC, events: dict[str, threading.Event]):
     print(f"[NEW CONNECTION] {addr} connected.")
     
 
@@ -92,36 +92,66 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, mouse_events:thre
         
 
         if not data:
-            print("no message..")  # connection closed by client
-            break
+            print("no message..")  # connection closed by client maybe ?
+
         elif s_cmd.termination in data:
             print("end of transmission..")
             break
+
         elif s_cmd.left_swipe in data:
             print("Left Swipe Command recieved!")
             previous_slide()
+
         elif s_cmd.right_swipe in data:
             print("Right Swipe Command recieved!")
             next_slide()
+
         elif s_cmd.mouse_begin in data:
             print("mouse begin")
-            if not mouse_events.is_set():
-                mouse_events.set()
+            if not events.get("stream").is_set():
+                dc.reset()
+                events.get("stream").set()
+                events.get("mouse").set()
+
         elif s_cmd.mouse_end in data:
             print("mouse end")
-            if mouse_events.is_set():
-                mouse_events.clear()
-                dc.reset()
+            if events.get("stream").is_set():
+                events.get("stream").clear()
+                events.get("mouse").clear()
                 release_lmb()
+
         elif s_cmd.mouse_hold in data:
             print("holding lmb")
             hold_lmb()
+
         elif s_cmd.index_tapped in data:
             print("tap index")
             hold_lmb()
             release_lmb()
+            
+        elif s_cmd.middle_tapped in data:
+            print("tap middle")
+            # pdf slides specific functions for entering & exiting full screen
+            hold_ctrl()
+            press_L()
+            release_ctrl()
 
-    
+        elif s_cmd.middle_double_tapped in data:
+            print("tap 2x middle")
+
+        elif s_cmd.vol_begin in data:
+            print("hold middle")
+            if not events.get("stream").is_set():
+                hold_ctrl()
+                events.get("stream").set()
+                events.get("volume").set()
+
+        elif s_cmd.vol_end in data:
+            if events.get("stream").is_set():
+                release_ctrl()
+                events.get("stream").clear()
+                events.get("volume").clear()
+
     
     conn.send("Bye!".encode('utf-8'))
     conn.close()
@@ -207,15 +237,23 @@ def start(exit:threading.Event, dc:DC):
                 print("Accept connections Timeout. Retry in {} seconds".format(server.gettimeout()))
     
     # Event to signal mouse event proccessing
+
+    stream_events = threading.Event()
     mouse_events = threading.Event()
+    vol_events = threading.Event()
+    events = {
+        "stream": stream_events,
+        "mouse" : mouse_events,
+        "volume": vol_events
+    }
     
     # deprecated
     #tcp = threading.Thread(target=handle_client_int, args=(conn, addr, exit, dc))
 
-    tcp = threading.Thread(target=handle_client_new, args=(conn, addr, exit, dc, mouse_events))
+    tcp = threading.Thread(target=handle_client_new, args=(conn, addr, exit, dc, events))
     tcp.start()
 
-    udp = threading.Thread(target=listen_udp_sock, args=(exit, dc, mouse_events))
+    udp = threading.Thread(target=listen_udp_sock, args=(exit, dc, events))
     udp.start()
 
     # TODO need to remove this in order to start storer with empty queue
@@ -227,7 +265,7 @@ def start(exit:threading.Event, dc:DC):
     print("Starting Storer")
 
     #storer_t = threading.Thread(target=storer.start, args=(exit, dc))
-    storer_t = threading.Thread(target=storer.start, args=(exit, dc, mouse_events))
+    storer_t = threading.Thread(target=storer.start, args=(exit, dc, events))
     storer_t.start()
     
     terminator = threading.Thread(target=closer, args=(exit, conn))
