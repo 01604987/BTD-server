@@ -1,6 +1,6 @@
 import threading
 import math
-from controls import ctypes_mouse
+from controls import control_driver
 from processing.data_collection import DC
 from processing import complementary_filter, linear_acceleration, filter
 
@@ -31,7 +31,7 @@ def start(exit:threading.Event, dc:DC, mouse_events:threading.Event):
                 y = -y
         
         # calculate next x, y movement
-        ctypes_mouse.move_mouse_relative(x, y)
+        control_driver.move_mouse_relative(x, y)
 
 def move(current_orientation):
     x_null = 4
@@ -52,11 +52,18 @@ def move(current_orientation):
             y = -y
     
     # calculate next x, y movement
-    ctypes_mouse.move_mouse_relative(x, y)
+    control_driver.move_mouse_relative(x, y)
 
-def ctrl_volume(current_orientation):
-    print("controlling vol")
-    #print(current_orientation)
+def ctrl_volume(current_orientation, last_orientation):
+
+    roll = current_orientation[1]
+
+    if (abs(roll-last_orientation[1]) <= 1):
+        return
+    
+    curr_vol = linear_transform(roll, -85, 85, 0, 1, True)
+
+    control_driver.volume(curr_vol)
         
 def ctrl_zoom(current_orientation):
     print("controlling zoom")
@@ -66,6 +73,14 @@ def calc_velocity(acceleration, velocity, axis, n = 3000, time_step = 1/100 ):
     velocity = velocity[n-1][axis] + acceleration[axis] * time_step
     return velocity
 
+def linear_transform(input, in_min, in_max, out_min, out_max, clamp=True):
+
+    y = ( (input - in_min) * (out_max - out_min) ) / (in_max - in_min) + out_min
+
+    if clamp:
+        y = out_max if y > out_max else out_min if y < out_min else y
+
+    return y
 
 def normalize_input(input, in_min= 10, in_max = 90):
 

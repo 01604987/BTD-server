@@ -148,7 +148,7 @@ def start(exit:threading.Event, data_collection:DC,  events: dict[str, threading
         if events.get("mouse").is_set():
             calculate_input.move(orientation)
         elif events.get("volume").is_set():
-            calculate_input.ctrl_volume(orientation)
+            calculate_input.ctrl_volume(orientation, dc.orientation[dc.in_memory_frames - 2])
         elif events.get("zoom").is_set():
             calculate_input.ctrl_zoom(orientation)
     

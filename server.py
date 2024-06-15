@@ -4,7 +4,7 @@ import time
 from processing import network_package as np, storer
 from processing.data_collection import DC
 from controls.actions import *
-from controls.ctypes_mouse import *
+from controls.control_driver import *
 import s_cmd
 
 
@@ -143,19 +143,16 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, events: dict[str,
         elif s_cmd.vol_begin in data:
             print("hold middle")
             if not events.get("stream").is_set():
-                hold_ctrl()
                 events.get("stream").set()
                 events.get("volume").set()
 
         elif s_cmd.vol_end in data:
             if events.get("stream").is_set():
-                release_ctrl()
                 events.get("stream").clear()
                 events.get("volume").clear()
 
         elif s_cmd.zoom_begin in data:
             if not events.get("stream").is_set():
-                hold_ctrl()
                 events.get("stream").set()
                 events.get("zoom").set()
 

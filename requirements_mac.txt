@@ -7,3 +7,5 @@ pynput==1.7.7
 PyQt5==5.15.10
 PyQt5_sip==12.13.0
 scipy==1.13.1
+pyobjc-core
+pyobjc-framework-CoreAudio
