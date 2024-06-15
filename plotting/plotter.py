@@ -278,10 +278,10 @@ def update_new(frame, a:matplotlib.axes.Axes, g:matplotlib.axes.Axes):
         a.legend(loc='upper left')
         g.legend(loc="upper left")
 
-
-
+ani1 = None
 def start(exit:threading.Event, data_collection:DC):
     global dc
+    global ani1
     dc = data_collection
     freq = 100
     interval = (1/freq) * 1000
@@ -342,6 +342,7 @@ def start(exit:threading.Event, data_collection:DC):
     # frame probably currently not relevant. Plot updates based on interval
     #ani1 = FuncAnimation(fig0, update_mouse_events, frames=frame, interval=interval, fargs=(accel,orientation,linear, linear_filtered))
     ani1 = FuncAnimation(fig0, update_linear_accel_filtered, frames=frame, interval=interval, fargs=(accel,gyro,orientation,linear,))
+    fig0.canvas.mpl_connect('key_press_event', on_key)
    
 
     try:
@@ -355,3 +356,16 @@ def start(exit:threading.Event, data_collection:DC):
 
 def close():
     plt.close()
+
+paused = 0
+
+def on_key(event):
+    global ani1
+    global paused
+    if event.key == 'p':
+        if paused:
+            ani1.event_source.start()
+            paused = 0
+        else:
+            ani1.event_source.stop()
+            paused = 1

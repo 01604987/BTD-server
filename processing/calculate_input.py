@@ -55,10 +55,12 @@ def move(current_orientation):
     ctypes_mouse.move_mouse_relative(x, y)
 
 def ctrl_volume(current_orientation):
-    print(current_orientation)
+    print("controlling vol")
+    #print(current_orientation)
         
 def ctrl_zoom(current_orientation):
-    print(current_orientation)
+    print("controlling zoom")
+    #print(current_orientation)
 
 def calc_velocity(acceleration, velocity, axis, n = 3000, time_step = 1/100 ):
     velocity = velocity[n-1][axis] + acceleration[axis] * time_step
