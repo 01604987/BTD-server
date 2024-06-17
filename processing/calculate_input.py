@@ -78,4 +78,4 @@ def normalize_output(input, in_min= 1, in_max =  math.e, out_min = 1, out_max = 
     return out
 
 def exponential_transfer(x):
-    return math.exp(x * 2)
+    return math.exp(x * 3)
