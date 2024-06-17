@@ -101,8 +101,18 @@ elif system == 'Darwin':
 
     from pynput.mouse import Button, Controller as MouseController
     from pynput.keyboard import Controller as KbController, Key
-    from CoreAudio import AudioHardware, kAudioHardwarePropertyDefaultOutputDevice, kAudioDevicePropertyVolumeScalar
-    import CoreFoundation
+    from Quartz.CoreAudio import (
+        kAudioHardwarePropertyDefaultOutputDevice,
+        kAudioDevicePropertyVolumeScalar,
+        kAudioObjectPropertyElementMaster,
+        kAudioDevicePropertyScopeOutput,
+        AudioObjectPropertyAddress,
+        AudioObjectGetPropertyData,
+        AudioObjectSetPropertyData,
+        AudioObjectPropertyAddress,
+        AudioDeviceID
+    )
+    import objc
 
     # Initialize the mouse controller
     mouse = MouseController()
@@ -111,13 +121,25 @@ elif system == 'Darwin':
 
 
     def setup_vol():
-        device = AudioHardware.kAudioHardwarePropertyDefaultOutputDevice
-        address = AudioHardware.AudioObjectPropertyAddress(
-            mSelector=kAudioDevicePropertyVolumeScalar,
-            mScope=AudioHardware.kAudioDevicePropertyScopeOutput,
-            mElement=AudioHardware.kAudioObjectPropertyElementMaster
+        address = AudioObjectPropertyAddress(
+            mSelector=kAudioHardwarePropertyDefaultOutputDevice,
+            mScope=kAudioObjectPropertyScopeGlobal,
+            mElement=kAudioObjectPropertyElementMaster
         )
-        return device, address
+        device_id = AudioDeviceID()
+        size = ctypes.sizeof(device_id)
+        status = AudioObjectGetPropertyData(
+            kAudioObjectSystemObject, address, 0, None, size, device_id)
+        if status != 0:
+            raise OSError(f"Error {status} getting default device")
+        
+        volume_address = AudioObjectPropertyAddress(
+            mSelector=kAudioDevicePropertyVolumeScalar,
+            mScope=kAudioDevicePropertyScopeOutput,
+            mElement=kAudioObjectPropertyElementMaster
+        )
+        return device_id.value, volume_address
+
     
     vol, address = setup_vol()
 
@@ -125,15 +147,17 @@ elif system == 'Darwin':
         global vol
         global address
 
-        err = AudioHardware.AudioObjectSetPropertyData(
+        level = ctypes.c_float(level)
+        size = ctypes.sizeof(level)
+        status = AudioObjectSetPropertyData(
             vol,
             address,
             0,
             None,
-            CoreFoundation.sizeof(CoreFoundation.c_float),
-            CoreFoundation.pointer(CoreFoundation.c_float(level))
+            size,
+            ctypes.byref(level)
         )
-        if err:
+        if status != 0:
             print("Failed to set volume")
 
     def move_mouse(x, y):
