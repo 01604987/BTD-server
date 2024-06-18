@@ -118,18 +118,18 @@ elif system == 'Darwin':
 
     from pynput.mouse import Button, Controller as MouseController
     from pynput.keyboard import Controller as KbController, Key
-    from Quartz.CoreAudio import (
-        kAudioHardwarePropertyDefaultOutputDevice,
-        kAudioDevicePropertyVolumeScalar,
-        kAudioObjectPropertyElementMaster,
-        kAudioDevicePropertyScopeOutput,
-        AudioObjectPropertyAddress,
-        AudioObjectGetPropertyData,
-        AudioObjectSetPropertyData,
-        AudioObjectPropertyAddress,
-        AudioDeviceID
-    )
-    import objc
+    # from Quartz.CoreAudio import (
+    #     kAudioHardwarePropertyDefaultOutputDevice,
+    #     kAudioDevicePropertyVolumeScalar,
+    #     kAudioObjectPropertyElementMaster,
+    #     kAudioDevicePropertyScopeOutput,
+    #     AudioObjectPropertyAddress,
+    #     AudioObjectGetPropertyData,
+    #     AudioObjectSetPropertyData,
+    #     AudioObjectPropertyAddress,
+    #     AudioDeviceID
+    # )
+    # import objc
 
     # Initialize the mouse controller
     mouse = MouseController()
@@ -137,45 +137,49 @@ elif system == 'Darwin':
 
 
 
-    def setup_vol():
-        address = AudioObjectPropertyAddress(
-            mSelector=kAudioHardwarePropertyDefaultOutputDevice,
-            mScope=kAudioObjectPropertyScopeGlobal,
-            mElement=kAudioObjectPropertyElementMaster
-        )
-        device_id = AudioDeviceID()
-        size = ctypes.sizeof(device_id)
-        status = AudioObjectGetPropertyData(
-            kAudioObjectSystemObject, address, 0, None, size, device_id)
-        if status != 0:
-            raise OSError(f"Error {status} getting default device")
+    # def setup_vol():
+    #     address = AudioObjectPropertyAddress(
+    #         mSelector=kAudioHardwarePropertyDefaultOutputDevice,
+    #         mScope=kAudioObjectPropertyScopeGlobal,
+    #         mElement=kAudioObjectPropertyElementMaster
+    #     )
+    #     device_id = AudioDeviceID()
+    #     size = ctypes.sizeof(device_id)
+    #     status = AudioObjectGetPropertyData(
+    #         kAudioObjectSystemObject, address, 0, None, size, device_id)
+    #     if status != 0:
+    #         raise OSError(f"Error {status} getting default device")
         
-        volume_address = AudioObjectPropertyAddress(
-            mSelector=kAudioDevicePropertyVolumeScalar,
-            mScope=kAudioDevicePropertyScopeOutput,
-            mElement=kAudioObjectPropertyElementMaster
-        )
-        return device_id.value, volume_address
+    #     volume_address = AudioObjectPropertyAddress(
+    #         mSelector=kAudioDevicePropertyVolumeScalar,
+    #         mScope=kAudioDevicePropertyScopeOutput,
+    #         mElement=kAudioObjectPropertyElementMaster
+    #     )
+    #     return device_id.value, volume_address
 
     
-    vol, address = setup_vol()
+    # vol, address = setup_vol()
+
+    # def volume(level):
+    #     global vol
+    #     global address
+
+    #     level = ctypes.c_float(level)
+    #     size = ctypes.sizeof(level)
+    #     status = AudioObjectSetPropertyData(
+    #         vol,
+    #         address,
+    #         0,
+    #         None,
+    #         size,
+    #         ctypes.byref(level)
+    #     )
+    #     if status != 0:
+    #         print("Failed to set volume")
 
     def volume(level):
-        global vol
-        global address
-
-        level = ctypes.c_float(level)
-        size = ctypes.sizeof(level)
-        status = AudioObjectSetPropertyData(
-            vol,
-            address,
-            0,
-            None,
-            size,
-            ctypes.byref(level)
-        )
-        if status != 0:
-            print("Failed to set volume")
+        print("Not implemented for MAC")
+        print(f"level: {level}")
 
     def move_mouse(x, y):
         mouse.position = (x, y)
@@ -195,6 +199,19 @@ elif system == 'Darwin':
         if lmb:
             mouse.release(Button.left)
             lmb = 0
+
+    def hold_rmb():
+        global rmb
+        if not rmb:
+            rmb = 1
+            mouse.press(Button.right)
+            
+    def release_rmb(): 
+        global rmb
+        if rmb:
+            mouse.release(Button.right)
+            rmb = 0
+
 
     def press_L():
         kb.press('l')
