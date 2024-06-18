@@ -131,6 +131,8 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, events: dict[str,
             
         elif s_cmd.middle_tapped in data:
             print("tap middle")
+            hold_rmb()
+            release_rmb()
 
 
         elif s_cmd.middle_double_tapped in data:

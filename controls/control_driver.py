@@ -6,6 +6,7 @@ print(f"Using {system} specific functions")
 
 ctrl = 0
 lmb = 0
+rmb = 0
 
 if system == 'Windows':
 
@@ -25,6 +26,10 @@ if system == 'Windows':
 
     MOUSEEVENTF_LEFTDOWN = 0x0002
     MOUSEEVENTF_LEFTUP = 0x0004
+    
+    MOUSEEVENTF_RIGHTDOWN = 0x0008
+    MOUSEEVENTF_RIGHTUP = 0x0010
+
     MOUSEEVENTF_WHEEL = 0x0800
     # ctrl
     VK_CONTROL = 0x11
@@ -57,6 +62,18 @@ if system == 'Windows':
         if lmb:
             user32.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
             lmb = 0
+
+    def hold_rmb():
+        global rmb
+        if not rmb:
+            rmb = 1
+            user32.mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0)
+            
+    def release_rmb(): 
+        global rmb
+        if rmb:
+            user32.mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0)
+            rmb = 0
 
     def press_L():
         user32.keybd_event(VK_L, 0, KEYEVENTF_KEYDOWN, 0)
