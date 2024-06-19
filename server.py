@@ -117,7 +117,7 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, events: dict[str,
             if not events.get("stream").is_set():
                 dc.reset()
                 events.get("stream").set()
-                #events.get("mouse").set()
+                events.get("mouse").set()
 
         elif s_cmd.mouse_end in data:
             print("mouse end")
