@@ -26,7 +26,7 @@ server.bind(ADDR)
 
 udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 udp_socket.settimeout(3)
-udp_socket.bind((SERVER, PORT))
+udp_socket.bind((SERVER, PORT+1))
 
 def listen_udp_sock(exit:threading.Event, dc:DC, events:dict[str, threading.Event]):
     print(f"Listen to udp sock under {SERVER}:{PORT}")
@@ -38,7 +38,7 @@ def listen_udp_sock(exit:threading.Event, dc:DC, events:dict[str, threading.Even
             # TODO recv 24 bytes to include xyz gyro data
             data, addr = udp_socket.recvfrom(24)
             if not data:
-                print("no message..")  # connection closed by client
+                print("no message.. upd")  # connection closed by client
                 #break
         except socket.timeout:
             print("Udp timeout")
@@ -89,10 +89,16 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, events: dict[str,
         except ConnectionAbortedError:
             print("Connection aborted")
             return
-        
+        except socket.timeout:
+            print("Socket timed out. No data received within the timeout period.")
+            return  # You can choose to break or continue based on your use case
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+            return
 
         if not data:
-            print("no message..")  # connection closed by client maybe ?
+            print("no message.. tcp")  # connection closed by client maybe ?
+            break
 
         elif s_cmd.termination in data:
             print("end of transmission..")
@@ -111,7 +117,7 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, events: dict[str,
             if not events.get("stream").is_set():
                 dc.reset()
                 events.get("stream").set()
-                events.get("mouse").set()
+                #events.get("mouse").set()
 
         elif s_cmd.mouse_end in data:
             print("mouse end")
