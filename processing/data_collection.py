@@ -49,10 +49,10 @@ class DC:
         self.velocity = [(0, 0, 0) for _ in range(self.in_memory_frames)]
         pass
 
-    def flush_queue(self, q):
-        while not q.empty():
+    def flush_queue(self):
+        while not self.data_q.empty():
             try:
-                q.get_nowait()
+                self.data_q.get_nowait()
             except queue.Empty:
                 break
 class AccelGyroData:

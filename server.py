@@ -119,6 +119,8 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, events: dict[str,
                 events.get("stream").clear()
                 events.get("mouse").clear()
                 release_lmb()
+                dc.flush_queue()
+
 
         elif s_cmd.mouse_hold in data:
             print("holding lmb")
@@ -153,6 +155,7 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, events: dict[str,
             if events.get("stream").is_set():
                 events.get("stream").clear()
                 events.get("volume").clear()
+                dc.flush_queue()
 
         elif s_cmd.zoom_begin in data:
             if not events.get("stream").is_set():
@@ -165,6 +168,7 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, events: dict[str,
                 release_ctrl()
                 events.get("stream").clear()
                 events.get("zoom").clear()
+                dc.flush_queue()
 
     
     conn.send("Bye!".encode('utf-8'))
