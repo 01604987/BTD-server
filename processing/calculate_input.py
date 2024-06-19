@@ -20,7 +20,7 @@ def move(current_orientation):
     if abs(o[0]) > y_null:
         y = exponential_transfer(normalize_input(o[0]))
         y = round(normalize_output(y))
-        if o[0] < 0:
+        if o[0] > 0:
             y = -y
     
     # calculate next x, y movement
