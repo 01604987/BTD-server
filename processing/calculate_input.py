@@ -15,11 +15,15 @@ def move(current_orientation):
     if abs(o[1]) > x_null:
         x = exponential_transfer(normalize_input(o[1]))
         x = round(normalize_output(x))
+        # determine x axis mouse movement
+        # non inverted
         if o[1] < 0:
             x = -x
     if abs(o[0]) > y_null:
         y = exponential_transfer(normalize_input(o[0]))
         y = round(normalize_output(y))
+        # determine y axis mouse movement 
+        # non inverted
         if o[0] > 0:
             y = -y
     
