@@ -23,8 +23,8 @@ def move(current_orientation):
         y = exponential_transfer(normalize_input(o[0]))
         y = round(normalize_output(y))
         # determine y axis mouse movement 
-        # non inverted
-        if o[0] > 0:
+        # inverted
+        if o[0] < 0:
             y = -y
     
     # calculate next x, y movement
