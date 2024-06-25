@@ -116,6 +116,8 @@ if system == 'Windows':
 
 elif system == 'Darwin':
 
+    # Mac volume control not working. Author doesn't own a Mac.
+
     from pynput.mouse import Button, Controller as MouseController
     from pynput.keyboard import Controller as KbController, Key
     # from Quartz.CoreAudio import (

@@ -10,10 +10,7 @@ import s_cmd
 
 SIZE = 64 # how many symbols (bytes) to read
 PORT = 5500 # port number to listen on
-# need to adjust this function to get correct host address for hosts that have multiple adapters
-#SERVER = socket.gethostbyname_ex(socket.gethostname())[2][2] # this gets the current IP addr.
 SERVER = '0.0.0.0'
-#SERVER = '172.20.10.14'
 ADDR = (SERVER, PORT)
 DISCONNECT_MESSAGE = "!DISCONNECT"
 
@@ -91,7 +88,7 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, events: dict[str,
             return
         except socket.timeout:
             print("Socket timed out. No data received within the timeout period.")
-            return  # You can choose to break or continue based on your use case
+            return 
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
             return
@@ -184,54 +181,6 @@ def handle_client_new(conn, addr, exit:threading.Event, dc:DC, events: dict[str,
     calc_freq(st, dc.imu_raw)
     return
 
-        
-#! DEPRECATED DO NOT USE
-# TODO rewrite TCP to accept string or numeric commands
-def handle_client_int(conn, addr, exit:threading.Event, dc:DC):
-    print(f"[NEW CONNECTION] {addr} connected.")
-
-    termination = 'end'.encode()
-    left_swipe = 'CSL'.encode() # Command Swipe Left (CSL)
-    right_swipe = 'CSR'.encode() # Command Swipe Right (CSR)
-    st = time.time()
-    a= 0
-    connected = True
-    while connected and not exit.is_set():
-        try:
-            # accel data = 3 float values. 4 byte each = 12 byte max for single message.
-            data = conn.recv(12)  
-            if not data:
-                print("no message..")  # connection closed by client
-                break
-            elif termination in data:
-                print("end of transmission..")
-                connected = False
-                # no need to take the last data captured before end because will always receive 12 bytes as chunk.
-                #msg= msg + data.decode('utf-8')[:-3]
-                break
-            elif left_swipe in data:
-                print("Left Swipe Command recieved!")
-                previous_slide()
-            elif right_swipe in data:
-                print("Right Swipe Command recieved!")
-                next_slide()
-            else:
-                raw_data = np.ntohs_array(data)
-                # push to queue for processing by another thread.
-                dc.msg_q.put(raw_data)
-                a += 1
-        except ConnectionAbortedError:
-            print("Connection aborted")
-            return
-    
-    
-    conn.send("Bye!".encode('utf-8'))
-    conn.close()
-    udp_socket.close()
-
-    calc_freq(st, dc.imu_raw)
-    return
-
 
 def closer(exit:threading.Event, conn:socket):
     while (not exit.is_set()):
@@ -273,8 +222,6 @@ def start(exit:threading.Event, dc:DC):
         "zoom" : zoom_events
     }
     
-    # deprecated
-    #tcp = threading.Thread(target=handle_client_int, args=(conn, addr, exit, dc))
 
     tcp = threading.Thread(target=handle_client_new, args=(conn, addr, exit, dc, events))
     tcp.start()
@@ -282,7 +229,6 @@ def start(exit:threading.Event, dc:DC):
     udp = threading.Thread(target=listen_udp_sock, args=(exit, dc, events))
     udp.start()
 
-    # TODO need to remove this in order to start storer with empty queue
     while dc.data_q.empty():
         if exit.is_set():
             return 0
@@ -290,7 +236,6 @@ def start(exit:threading.Event, dc:DC):
     
     print("Starting Storer")
 
-    #storer_t = threading.Thread(target=storer.start, args=(exit, dc))
     storer_t = threading.Thread(target=storer.start, args=(exit, dc, events))
     storer_t.start()
     

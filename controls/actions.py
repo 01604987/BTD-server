@@ -7,6 +7,8 @@ def next_slide():
 def previous_slide():
     pyautogui.press('left')
 
+# DEPRECATED beyond this point
+
 def double_click():
     # Double click
     pyautogui.doubleClick()
