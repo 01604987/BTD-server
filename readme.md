@@ -1,7 +1,7 @@
 # Server
-This repository contains server code for receiving, pre-/postprocessing, plotting of IMU data from the M5 Stick C Plus. This application was built for a handsfree, ubiqutous and wearable computing project, "Smart Presenter", which allows for intuitive gesture to control Mouse and Keyboard events. Workflow, process and ideation of this project can be in this [Miro board](https://miro.com/app/board/uXjVKQi3msY=/?share_link_id=143508401314). Included are a complete set of presentations and their accompanying video recordings for Milestone 2/3 and a small image gallery.
-
-# Hardware
+This repository contains server code for receiving, pre-/postprocessing, plotting of IMU data from the M5 Stick C Plus. This application was built for a handsfree, ubiquitous and wearable computing project, "Smart Presenter", which allows for intuitive gestures to control Mouse and Keyboard events. Workflow, process and ideation of this project can be found on this [Miro board](https://miro.com/app/board/uXjVKQi3msY=/?share_link_id=143508401314). Included are a complete set of presentation slides and a small image gallery.
+# Requirements
+## Hardware
 - [M5 Stick C Plus ESP32-PICO Mini IoT Development Kit](https://shop.m5stack.com/products/m5stickc-plus-esp32-pico-mini-iot-development-kit) ``required``
 - Middle button on the M5 Stick ``for testing``
 - Right button on the M5 Stick ``for testing``
@@ -14,6 +14,9 @@ This repository contains server code for receiving, pre-/postprocessing, plottin
 - GND
 
 A simple wiring diagram can also be found in our [Miro board](https://miro.com/app/board/uXjVKQi3msY=/), with proper setup of pull-up resistors that are required for the configured buttons on the M5 Stick C Plus.
+
+## Client
+This server expects a client and receives server commands via TCP with streamed raw IMU data via UDP. Processing the streamed IMU data works under the assumption that the IMU data is sampled with a 100hz sample rate. The accompanying client implementation for this project can be found [here](https://github.com/01604987/BTD-framework). Please follow the instructions provided in the README.md of the client repository.
 
 # How to install the Server
 - Make sure python ``3.11`` is installed.
